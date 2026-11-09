@@ -1,0 +1,6 @@
+{
+  "name": "BuildCost Pro - Complete Metric Building Estimator",
+  "description": "Professional construction cost estimator with dedicated Excavation, Footing, and Column sizing, RCC structure, rooms, finishes, and rates in standard Metric units (m, m², m³).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
