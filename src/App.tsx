@@ -33,6 +33,39 @@ interface ColumnItem {
   height: number; // in meters (e.g. 3.0m)
 }
 
+interface SlabItem {
+  id: number;
+  label: string;
+  count: number;     // number of slabs / floors
+  length: number;    // in meters
+  width: number;     // in meters
+  thickness: number; // in meters (e.g. 0.125m = 125mm)
+}
+
+interface DoorItem {
+  id: number;
+  label: string;
+  count: number;
+  width: number;  // in meters
+  height: number; // in meters
+}
+
+interface WindowItem {
+  id: number;
+  label: string;
+  count: number;
+  width: number;  // in meters
+  height: number; // in meters
+}
+
+interface VentilatorItem {
+  id: number;
+  label: string;
+  count: number;
+  width: number;  // in meters
+  height: number; // in meters
+}
+
 interface RoomItem {
   id: number;
   type: string;
@@ -65,8 +98,8 @@ export default function App() {
   const [regError, setRegError] = useState<string>('');
   const [regSuccess, setRegSuccess] = useState<string>('');
 
-  // Stepper state (0 to 7)
-  // 0: Project, 1: Excavation, 2: Footings, 3: Columns, 4: RCC Superstructure, 5: Walls & Rooms, 6: Finishing, 7: Rates
+  // Stepper state (0 to 8)
+  // 0: Project, 1: Excavation, 2: Footings, 3: Columns, 4: Beams & Slabs, 5: Walls & Rooms, 6: Openings, 7: Finishing, 8: Rates
   const [currentStep, setCurrentStep] = useState<number>(0);
 
   // Step 1: Project Details (Metric)
@@ -91,7 +124,7 @@ export default function App() {
   ]);
   const [nextPitId, setNextPitId] = useState<number>(2);
 
-  // Additional Foundation Trench Excavation (optional)
+  // Additional Foundation Trench Excavation
   const [trenchLength, setTrenchLength] = useState<number>(0); // m
   const [trenchWidth, setTrenchWidth] = useState<number>(0.45); // m
   const [trenchDepth, setTrenchDepth] = useState<number>(0.6); // m
@@ -122,18 +155,31 @@ export default function App() {
   ]);
   const [nextColId, setNextColId] = useState<number>(2);
 
-  // Step 5: RCC Superstructure (Beams & Slabs)
+  // Step 5: RCC Superstructure (Beams & Slab Dimensions)
   const [beamLength, setBeamLength] = useState<number>(50); // running meters
   const [beamW, setBeamW] = useState<number>(0.23); // meters
   const [beamD, setBeamD] = useState<number>(0.30); // meters
-  const [slab, setSlab] = useState<number>(0.125);  // meters (125 mm)
+
+  // Dedicated Slab Dimensions panels
+  const [slabs, setSlabs] = useState<SlabItem[]>([
+    {
+      id: 1,
+      label: 'Main Floor / Roof Slab',
+      count: 1,
+      length: 10.0,   // meters
+      width: 9.5,     // meters
+      thickness: 0.125, // meters (125 mm)
+    },
+  ]);
+  const [nextSlabId, setNextSlabId] = useState<number>(2);
+
   const [mixC, setMixC] = useState<number>(1);
   const [mixS, setMixS] = useState<number>(2);
   const [mixA, setMixA] = useState<number>(4);
   const [steelFactor, setSteelFactor] = useState<number>(100); // kg / m³ RCC
   const [miscRcc, setMiscRcc] = useState<number>(0); // m³
 
-  // Step 6: Walls, Rooms, Doors & Windows
+  // Step 6: Walls & Rooms
   const [rooms, setRooms] = useState<RoomItem[]>([
     { id: 1, type: 'Bedroom', l: 3.6, w: 3.6, n: 2 },
     { id: 2, type: 'Living / Hall', l: 4.5, w: 3.6, n: 1 },
@@ -145,18 +191,34 @@ export default function App() {
   const [wallLength, setWallLength] = useState<number>(45); // running meters / floor
   const [wallHeight, setWallHeight] = useState<number>(3.0); // meters
   const [wallThick, setWallThick] = useState<number>(0.23); // meters (230 mm)
-  const [doors, setDoors] = useState<number>(5);
-  const [doorSize, setDoorSize] = useState<string>('0.9 x 2.1'); // width x height (m)
-  const [windows, setWindows] = useState<number>(6);
-  const [windowSize, setWindowSize] = useState<string>('1.2 x 1.2'); // width x height (m)
-  const [vents, setVents] = useState<number>(3);
-  const [ventSize, setVentSize] = useState<string>('0.6 x 0.45'); // width x height (m)
   const [mortarC, setMortarC] = useState<number>(1);
   const [mortarS, setMortarS] = useState<number>(6);
   const [brickFactor, setBrickFactor] = useState<number>(500); // bricks per cu.m of brickwork
 
-  // Step 7: Finishing, Electrical & Plumbing
-  const [floorArea, setFloorArea] = useState<number>(0); // sq.m (0 = built-up area)
+  // Step 7: Openings - Separate Dedicated Options for Doors, Windows, and Ventilation
+  const [doorsList, setDoorsList] = useState<DoorItem[]>([
+    { id: 1, label: 'Main Entrance Door (D1)', count: 1, width: 1.2, height: 2.1 },
+    { id: 2, label: 'Room Doors (D2)', count: 4, width: 0.9, height: 2.1 },
+    { id: 3, label: 'Bathroom / Toilet Doors (D3)', count: 2, width: 0.75, height: 2.1 },
+  ]);
+  const [nextDoorId, setNextDoorId] = useState<number>(4);
+
+  const [windowsList, setWindowsList] = useState<WindowItem[]>([
+    { id: 1, label: 'Living Room Window (W1)', count: 2, width: 1.5, height: 1.2 },
+    { id: 2, label: 'Bedroom Windows (W2)', count: 3, width: 1.2, height: 1.2 },
+    { id: 3, label: 'Kitchen Window (W3)', count: 1, width: 0.9, height: 0.9 },
+  ]);
+  const [nextWindowId, setNextWindowId] = useState<number>(4);
+
+  const [ventsList, setVentsList] = useState<VentilatorItem[]>([
+    { id: 1, label: 'Bathroom Ventilators (V1)', count: 2, width: 0.6, height: 0.45 },
+    { id: 2, label: 'Kitchen / Store Vent (V2)', count: 1, width: 0.6, height: 0.45 },
+  ]);
+  const [nextVentId, setNextVentId] = useState<number>(3);
+
+  // Step 8: Finishing, Tiles, Electrical & Plumbing
+  const [floorArea, setFloorArea] = useState<number>(0); // sq.m (0 = auto from slab area)
+  const [wallTilesArea, setWallTilesArea] = useState<number>(25); // sq.m for bathroom & kitchen wall dado tiles
   const [plasterSides, setPlasterSides] = useState<number>(2); // 1 or 2
   const [plasterThick, setPlasterThick] = useState<number>(12); // mm
   const [paintCoats, setPaintCoats] = useState<number>(2);
@@ -164,15 +226,25 @@ export default function App() {
   const [plumbingFixtures, setPlumbingFixtures] = useState<number>(10);
   const [waterproofArea, setWaterproofArea] = useState<number>(10); // sq.m
 
-  // Step 8: Material & Labour Rates (in Metric Units)
+  // Step 9: Material & Labour Rates (in Metric Units)
+  // Structural & Core materials
   const [cementRate, setCementRate] = useState<number>(380); // ₹ / 50kg bag
   const [sandRate, setSandRate] = useState<number>(1900); // ₹ / cu.m
   const [aggRate, setAggRate] = useState<number>(1750); // ₹ / cu.m
   const [steelRate, setSteelRate] = useState<number>(65); // ₹ / kg
   const [brickRate, setBrickRate] = useState<number>(8); // ₹ / piece
   const [excRate, setExcRate] = useState<number>(400); // ₹ / cu.m
+  const [shutteringRate, setShutteringRate] = useState<number>(450); // ₹ / sq.m of slab formwork
   const [labourRate, setLabourRate] = useState<number>(2700); // ₹ / sq.m built-up
-  const [floorRate, setFloorRate] = useState<number>(950); // ₹ / sq.m
+
+  // Openings rates (Directly matching Doors, Windows, and Vents options)
+  const [doorRate, setDoorRate] = useState<number>(6500); // ₹ / door (frame + shutter + hardware)
+  const [windowRate, setWindowRate] = useState<number>(4500); // ₹ / window (frame + glass + grill)
+  const [ventRate, setVentRate] = useState<number>(1500); // ₹ / ventilator
+
+  // Tiles & Finishing rates (Directly matching Tiles options)
+  const [floorRate, setFloorRate] = useState<number>(950); // ₹ / sq.m (Floor Tiles + Laying)
+  const [wallTilesRate, setWallTilesRate] = useState<number>(850); // ₹ / sq.m (Bathroom/Kitchen Wall Dado Tiles)
   const [plasterRate, setPlasterRate] = useState<number>(380); // ₹ / sq.m
   const [paintRate, setPaintRate] = useState<number>(270); // ₹ / sq.m
   const [electricalRate, setElectricalRate] = useState<number>(700); // ₹ / point
@@ -196,7 +268,14 @@ export default function App() {
     brickQty: number; // pieces
     plasterArea: number; // sq.m
     calcFloorArea: number; // sq.m
+    calcWallTilesArea: number; // sq.m
     paintArea: number; // sq.m
+    slabVolume: number; // cu.m
+    slabFormworkArea: number; // sq.m
+    openingsArea: number; // sq.m
+    doorCount: number;
+    windowCount: number;
+    ventCount: number;
     items: [string, number, string, number][];
     contingencyVal: number;
     contingencyRate: number;
@@ -228,12 +307,6 @@ export default function App() {
 
   const money = (x: number) => {
     return '₹' + fmt(x);
-  };
-
-  const sizeArea = (str: string) => {
-    if (!str) return 0;
-    const m = str.toLowerCase().split(/[x×*]/).map((x) => Number(x.trim()));
-    return m.length >= 2 && m.every((x) => !isNaN(x) && x > 0) ? m[0] * m[1] : 0;
   };
 
   // Auth Handlers
@@ -407,6 +480,50 @@ export default function App() {
     );
   };
 
+  // Add & Remove Slab Panels
+  const addSlab = () => {
+    const newId = nextSlabId;
+    setNextSlabId(newId + 1);
+    setSlabs([
+      ...slabs,
+      {
+        id: newId,
+        label: `Slab Panel ${newId}`,
+        count: 1,
+        length: 4.0,
+        width: 3.0,
+        thickness: 0.125,
+      },
+    ]);
+  };
+
+  const removeSlab = (id: number) => {
+    if (slabs.length <= 1) {
+      alert('At least one Slab panel is required.');
+      return;
+    }
+    setSlabs(slabs.filter((s) => s.id !== id));
+  };
+
+  const updateSlab = (id: number, field: keyof SlabItem, value: any) => {
+    setSlabs(slabs.map((s) => (s.id === id ? { ...s, [field]: value } : s)));
+  };
+
+  const autoFillSlabFromArea = () => {
+    const defaultLen = plotL > 0 ? Number(plotL) : 10;
+    const defaultWid = plotW > 0 ? Number(plotW) : 9.5;
+    setSlabs([
+      {
+        id: 1,
+        label: `Full Built-up Slab (${floors} Floor${floors > 1 ? 's' : ''})`,
+        count: Math.max(1, Number(floors) || 1),
+        length: defaultLen,
+        width: defaultWid,
+        thickness: 0.125,
+      },
+    ]);
+  };
+
   // Add & Remove Rooms
   const addRoom = () => {
     const newId = nextRoomId;
@@ -429,6 +546,90 @@ export default function App() {
 
   const updateRoom = (id: number, field: keyof RoomItem, value: any) => {
     setRooms(rooms.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
+  };
+
+  // Add & Remove Doors
+  const addDoor = () => {
+    const newId = nextDoorId;
+    setNextDoorId(newId + 1);
+    setDoorsList([
+      ...doorsList,
+      {
+        id: newId,
+        label: `Door Type ${newId} (D${newId})`,
+        count: 1,
+        width: 0.9,
+        height: 2.1,
+      },
+    ]);
+  };
+
+  const removeDoor = (id: number) => {
+    if (doorsList.length <= 1) {
+      alert('At least one Door entry is required.');
+      return;
+    }
+    setDoorsList(doorsList.filter((d) => d.id !== id));
+  };
+
+  const updateDoor = (id: number, field: keyof DoorItem, value: any) => {
+    setDoorsList(doorsList.map((d) => (d.id === id ? { ...d, [field]: value } : d)));
+  };
+
+  // Add & Remove Windows
+  const addWindow = () => {
+    const newId = nextWindowId;
+    setNextWindowId(newId + 1);
+    setWindowsList([
+      ...windowsList,
+      {
+        id: newId,
+        label: `Window Type ${newId} (W${newId})`,
+        count: 1,
+        width: 1.2,
+        height: 1.2,
+      },
+    ]);
+  };
+
+  const removeWindow = (id: number) => {
+    if (windowsList.length <= 1) {
+      alert('At least one Window entry is required.');
+      return;
+    }
+    setWindowsList(windowsList.filter((w) => w.id !== id));
+  };
+
+  const updateWindow = (id: number, field: keyof WindowItem, value: any) => {
+    setWindowsList(windowsList.map((w) => (w.id === id ? { ...w, [field]: value } : w)));
+  };
+
+  // Add & Remove Ventilators
+  const addVentilator = () => {
+    const newId = nextVentId;
+    setNextVentId(newId + 1);
+    setVentsList([
+      ...ventsList,
+      {
+        id: newId,
+        label: `Ventilator Type ${newId} (V${newId})`,
+        count: 1,
+        width: 0.6,
+        height: 0.45,
+      },
+    ]);
+  };
+
+  const removeVentilator = (id: number) => {
+    if (ventsList.length <= 1) {
+      alert('At least one Ventilator entry is required.');
+      return;
+    }
+    setVentsList(ventsList.filter((v) => v.id !== id));
+  };
+
+  const updateVentilator = (id: number, field: keyof VentilatorItem, value: any) => {
+    setVentsList(ventsList.map((v) => (v.id === id ? { ...v, [field]: value } : v)));
   };
 
   // Stepper navigation
@@ -465,6 +666,48 @@ export default function App() {
     return sum + q * w * d * h;
   }, 0);
 
+  const totalSlabVolume = slabs.reduce((sum, s) => {
+    const q = Math.max(0, Number(s.count) || 0);
+    const l = Math.max(0, Number(s.length) || 0);
+    const w = Math.max(0, Number(s.width) || 0);
+    const t = Math.max(0, Number(s.thickness) || 0);
+    return sum + q * l * w * t;
+  }, 0);
+
+  const totalSlabArea = slabs.reduce((sum, s) => {
+    const q = Math.max(0, Number(s.count) || 0);
+    const l = Math.max(0, Number(s.length) || 0);
+    const w = Math.max(0, Number(s.width) || 0);
+    return sum + q * l * w;
+  }, 0);
+
+  // Live Openings Calculations
+  const totalDoorArea = doorsList.reduce((sum, d) => {
+    const q = Math.max(0, Number(d.count) || 0);
+    const w = Math.max(0, Number(d.width) || 0);
+    const h = Math.max(0, Number(d.height) || 0);
+    return sum + q * w * h;
+  }, 0);
+  const totalDoorCount = doorsList.reduce((sum, d) => sum + (Number(d.count) || 0), 0);
+
+  const totalWindowArea = windowsList.reduce((sum, w) => {
+    const q = Math.max(0, Number(w.count) || 0);
+    const width = Math.max(0, Number(w.width) || 0);
+    const height = Math.max(0, Number(w.height) || 0);
+    return sum + q * width * height;
+  }, 0);
+  const totalWindowCount = windowsList.reduce((sum, w) => sum + (Number(w.count) || 0), 0);
+
+  const totalVentArea = ventsList.reduce((sum, v) => {
+    const q = Math.max(0, Number(v.count) || 0);
+    const width = Math.max(0, Number(v.width) || 0);
+    const height = Math.max(0, Number(v.height) || 0);
+    return sum + q * width * height;
+  }, 0);
+  const totalVentCount = ventsList.reduce((sum, v) => sum + (Number(v.count) || 0), 0);
+
+  const totalOpeningsArea = totalDoorArea + totalWindowArea + totalVentArea;
+
   // Calculate full estimation in Metric
   const handleCalculate = () => {
     const fCount = Math.max(1, Number(floors) || 1);
@@ -483,8 +726,9 @@ export default function App() {
     // Beams RCC (m³)
     const beams = (Number(beamLength) || 0) * (Number(beamW) || 0) * (Number(beamD) || 0);
 
-    // Slab RCC (m³)
-    const slabVol = builtArea * (Number(slab) || 0);
+    // Slab RCC (m³) - Calculated directly from user entered Slab Dimensions!
+    const slabVol = totalSlabVolume > 0 ? totalSlabVolume : builtArea * 0.125;
+    const slabFormwork = totalSlabArea > 0 ? totalSlabArea : totalBuiltArea;
 
     // Total RCC in m³
     const rccM3 = footing + cols + beams + slabVol + (Number(miscRcc) || 0);
@@ -503,14 +747,9 @@ export default function App() {
     const aggRcc = mixTotal ? rccDry * (mA / mixTotal) : 0;  // m³
     const steelKg = rccM3 * (Number(steelFactor) || 0);
 
-    // Brickwork & Walls (m³)
-    const openingsArea =
-      (Number(doors) || 0) * sizeArea(doorSize) +
-      (Number(windows) || 0) * sizeArea(windowSize) +
-      (Number(vents) || 0) * sizeArea(ventSize);
-
+    // Brickwork & Walls (m³) with Doors, Windows, and Vents deducted
     const grossWallArea = (Number(wallLength) || 0) * (Number(wallHeight) || 0) * fCount;
-    const netWallArea = Math.max(0, grossWallArea - openingsArea);
+    const netWallArea = Math.max(0, grossWallArea - totalOpeningsArea);
     const wallVol = netWallArea * (Number(wallThick) || 0); // m³
     const bricks = wallVol * (Number(brickFactor) || 500); // 500 bricks / m³
 
@@ -524,8 +763,11 @@ export default function App() {
     const cementMortarBags = cementMortarVol / 0.03472;
     const sandMortar = mt ? mortarDry * (mortS / mt) : 0; // m³
 
-    // Flooring & Plastering
-    const customFloorArea = Number(floorArea) || totalBuiltArea;
+    // Flooring & Tiles
+    const customFloorArea = Number(floorArea) || (totalSlabArea > 0 ? totalSlabArea : totalBuiltArea);
+    const customWallTilesArea = Number(wallTilesArea) || 0;
+
+    // Plastering
     const pSides = Number(plasterSides) || 2;
     const plasterArea = netWallArea * pSides; // sq.m
     const plasterVol = plasterArea * ((Number(plasterThick) || 12) / 1000); // m³
@@ -543,7 +785,7 @@ export default function App() {
     const steelTotal = steelKg * wastageMultiplier; // kg
     const brickTotal = bricks * wastageMultiplier; // pieces
 
-    // BOQ Item list in Metric Units
+    // BOQ Item list in Metric Units with all option rates included
     const items: [string, number, string, number][] = [
       ['Cement', cementTotalBags, 'bags (50kg)', Number(cementRate) || 0],
       ['Sand', sandTotal, 'cu.m (m³)', Number(sandRate) || 0],
@@ -551,14 +793,19 @@ export default function App() {
       ['Reinforcement Steel', steelTotal, 'kg', Number(steelRate) || 0],
       ['Bricks', brickTotal, 'pieces', Number(brickRate) || 0],
       ['Excavation', excavation, 'cu.m (m³)', Number(excRate) || 0],
-      ['Construction Labour', totalBuiltArea, 'sq.m', Number(labourRate) || 0],
-      ['Flooring', customFloorArea, 'sq.m', Number(floorRate) || 0],
+      ['Slab & Beam Formwork (Shuttering & Scaffolding)', slabFormwork, 'sq.m', Number(shutteringRate) || 0],
+      ['Structural Construction Labour', totalBuiltArea, 'sq.m', Number(labourRate) || 0],
+      ['Doors (Frames, Shutters & Fitting)', totalDoorCount, 'doors', Number(doorRate) || 0],
+      ['Windows (Frames, Glass & Safety Grills)', totalWindowCount, 'windows', Number(windowRate) || 0],
+      ['Ventilators (Louvers, Glass & Exhaust Prov.)', totalVentCount, 'ventilators', Number(ventRate) || 0],
+      ['Floor Tiles & Flooring (Vitrified/Ceramic + Laying)', customFloorArea, 'sq.m', Number(floorRate) || 0],
+      ['Wall Dado Tiles (Bathrooms & Kitchens)', customWallTilesArea, 'sq.m', Number(wallTilesRate) || 0],
       ['Plastering', plasterArea, 'sq.m', Number(plasterRate) || 0],
       ['Painting (coat-area)', paintArea, 'sq.m', Number(paintRate) || 0],
       ['Electrical Points', Number(electricalPoints) || 0, 'points', Number(electricalRate) || 0],
       ['Plumbing Fixtures', Number(plumbingFixtures) || 0, 'fixtures', Number(plumbingRate) || 0],
       ['Waterproofing', Number(waterproofArea) || 0, 'sq.m', Number(waterproofRate) || 0],
-      ['Miscellaneous / Finishing', 1, 'lump sum', Number(miscRate) || 0],
+      ['Miscellaneous / Site Expenses', 1, 'lump sum', Number(miscRate) || 0],
     ];
 
     let subtotal = 0;
@@ -585,7 +832,14 @@ export default function App() {
       brickQty: brickTotal,
       plasterArea,
       calcFloorArea: customFloorArea,
+      calcWallTilesArea: customWallTilesArea,
       paintArea,
+      slabVolume: slabVol,
+      slabFormworkArea: slabFormwork,
+      openingsArea: totalOpeningsArea,
+      doorCount: totalDoorCount,
+      windowCount: totalWindowCount,
+      ventCount: totalVentCount,
       items,
       contingencyVal: contingencyAmount,
       contingencyRate: contPercentage,
@@ -757,7 +1011,7 @@ export default function App() {
           </div>
           <h1>Building Construction Cost Estimator</h1>
           <p>
-            Professional engineering cost calculation with dedicated steps for Excavation, Footings, Columns, RCC superstructure, walls, finishes, and rates in standard Metric units (meters, m², m³).
+            Professional engineering cost calculation with dedicated options for Excavation, Footings, Columns, Beam & Slab Dimensions, Rooms, separate Doors, Windows & Ventilation openings, Tiles, and Metric Rates.
           </p>
           <div style={{ marginTop: '16px' }}>
             <span className="tag">Plan · Calculate · Estimate (Metric m, m², m³)</span>
@@ -796,7 +1050,7 @@ export default function App() {
               className={`step ${currentStep === 4 ? 'active' : currentStep > 4 ? 'done' : ''}`}
               onClick={() => go(4)}
             >
-              5. Beams & Slab
+              5. Beams & Slabs
             </div>
             <div
               className={`step ${currentStep === 5 ? 'active' : currentStep > 5 ? 'done' : ''}`}
@@ -808,13 +1062,19 @@ export default function App() {
               className={`step ${currentStep === 6 ? 'active' : currentStep > 6 ? 'done' : ''}`}
               onClick={() => go(6)}
             >
-              7. Finishing
+              7. Openings
             </div>
             <div
-              className={`step ${currentStep === 7 ? 'active' : ''}`}
+              className={`step ${currentStep === 7 ? 'active' : currentStep > 7 ? 'done' : ''}`}
               onClick={() => go(7)}
             >
-              8. Rates
+              8. Finishing & Tiles
+            </div>
+            <div
+              className={`step ${currentStep === 8 ? 'active' : ''}`}
+              onClick={() => go(8)}
+            >
+              9. Rates
             </div>
           </div>
 
@@ -903,7 +1163,7 @@ export default function App() {
               </section>
             )}
 
-            {/* Step 1: Excavation (Dedicated Separate Option) */}
+            {/* Step 1: Excavation (Dedicated Option) */}
             {currentStep === 1 && (
               <section className="page" data-page="1">
                 <h2>Earthwork & Excavation</h2>
@@ -1307,17 +1567,145 @@ export default function App() {
                     ← Back: Footings
                   </button>
                   <button type="button" className="btn primary" onClick={() => go(4)}>
-                    Next: Beams & Slab →
+                    Next: Beams & Slabs →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 4: RCC Superstructure (Beams & Slab) */}
+            {/* Step 4: RCC Superstructure (Beams & Slab Dimensions) */}
             {currentStep === 4 && (
               <section className="page" data-page="4">
-                <h2>RCC Superstructure (Beams & Slab)</h2>
-                <p className="sub">Enter plinth/roof beam lengths, slab thickness, concrete mix design, and steel factor.</p>
+                <h2>Beams & Slab Dimensions (RCC Superstructure)</h2>
+                <p className="sub">
+                  Configure explicit Slab Dimensions (Length, Width, Thickness), Plinth/Roof Beams, and Mix specifications.
+                </p>
+
+                {/* Slabs Dimension Manager */}
+                <div className="column-type" style={{ background: '#f8fbfe', border: '1px solid #bde0f5' }}>
+                  <div className="column-type-head">
+                    <div>
+                      <strong style={{ fontSize: '15px' }}>📐 Slab Dimensions & Panels</strong>
+                      <div className="unit">Configure exact Length, Width, and Thickness for all floor & roof slab panels.</div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn secondary"
+                      style={{ padding: '6px 12px', fontSize: '12px' }}
+                      onClick={autoFillSlabFromArea}
+                    >
+                      ⚡ Auto-Fill from Built-up Area
+                    </button>
+                  </div>
+
+                  <div className="field full">
+                    <div className="live-badge">
+                      <span>Total Slab Area: <strong>{fmt(totalSlabArea)} m²</strong></span>
+                      <span style={{ margin: '0 8px' }}>|</span>
+                      <span>Total Slab Volume: <strong>{fmt(totalSlabVolume)} cu.m (m³)</strong></span>
+                    </div>
+                  </div>
+
+                  <div id="slabPanels" style={{ marginTop: '12px' }}>
+                    {slabs.map((slabItem, index) => {
+                      const panelArea = slabItem.count * slabItem.length * slabItem.width;
+                      const panelVol = panelArea * slabItem.thickness;
+                      return (
+                        <div
+                          key={slabItem.id}
+                          className="item"
+                          style={{ background: '#fff', border: '1px solid #d4e6f4' }}
+                        >
+                          <div className="item-head">
+                            <strong>
+                              {slabItem.label || `Slab Panel ${index + 1}`} · Area: {fmt(panelArea)} m² · Volume: {fmt(panelVol)} m³
+                            </strong>
+                            {slabs.length > 1 && (
+                              <button
+                                type="button"
+                                className="remove"
+                                onClick={() => removeSlab(slabItem.id)}
+                              >
+                                Remove Slab
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid">
+                            <div className="field">
+                              <label>Slab Panel Name / Type</label>
+                              <input
+                                type="text"
+                                value={slabItem.label}
+                                onChange={(e) =>
+                                  updateSlab(slabItem.id, 'label', e.target.value)
+                                }
+                              />
+                            </div>
+                            <div className="field">
+                              <label>Number of Floors / Slabs (Qty)</label>
+                              <input
+                                type="number"
+                                min={1}
+                                value={slabItem.count}
+                                onChange={(e) =>
+                                  updateSlab(slabItem.id, 'count', Number(e.target.value))
+                                }
+                              />
+                            </div>
+                            <div className="field">
+                              <label>Slab Length (meters)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                step=".1"
+                                value={slabItem.length}
+                                onChange={(e) =>
+                                  updateSlab(slabItem.id, 'length', Number(e.target.value))
+                                }
+                              />
+                              <div className="unit">e.g. 10.0 m</div>
+                            </div>
+                            <div className="field">
+                              <label>Slab Width (meters)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                step=".1"
+                                value={slabItem.width}
+                                onChange={(e) =>
+                                  updateSlab(slabItem.id, 'width', Number(e.target.value))
+                                }
+                              />
+                              <div className="unit">e.g. 9.5 m</div>
+                            </div>
+                            <div className="field">
+                              <label>Slab Thickness (meters)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                step=".005"
+                                value={slabItem.thickness}
+                                onChange={(e) =>
+                                  updateSlab(slabItem.id, 'thickness', Number(e.target.value))
+                                }
+                              />
+                              <div className="unit">e.g. 0.125 m = 125 mm (5 inches)</div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button type="button" className="add" onClick={addSlab} style={{ marginTop: '8px' }}>
+                    ＋ Add Another Slab Panel (Balcony, Porch, Canopy etc.)
+                  </button>
+                </div>
+
+                {/* Beams & Mix Parameters */}
+                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '17px' }}>
+                  Beam Geometry & Concrete Specifications
+                </h3>
                 <div className="grid">
                   <div className="field">
                     <label>Total Beam Length (running meters)</label>
@@ -1354,18 +1742,6 @@ export default function App() {
                       onChange={(e) => setBeamD(Number(e.target.value))}
                     />
                     <div className="unit">e.g. 0.30 m (300 mm)</div>
-                  </div>
-                  <div className="field">
-                    <label>Slab Thickness (meters)</label>
-                    <input
-                      id="slab"
-                      type="number"
-                      min={0}
-                      step=".005"
-                      value={slab}
-                      onChange={(e) => setSlab(Number(e.target.value))}
-                    />
-                    <div className="unit">e.g. 0.125 m (125 mm / 5 inches)</div>
                   </div>
                   <div className="field">
                     <label>Concrete Mix: Cement Part</label>
@@ -1435,10 +1811,10 @@ export default function App() {
               </section>
             )}
 
-            {/* Step 5: Walls, Rooms, Doors & Windows */}
+            {/* Step 5: Walls & Rooms */}
             {currentStep === 5 && (
               <section className="page" data-page="5">
-                <h2>Rooms, Walls, Doors & Windows</h2>
+                <h2>Rooms & Wall Measurements</h2>
                 <p className="sub">Add room configurations and specify total wall dimensions in meters.</p>
 
                 <div id="rooms">
@@ -1551,63 +1927,6 @@ export default function App() {
                     <div className="unit">e.g. 0.23 m (230 mm / 9") or 0.115 m (4.5")</div>
                   </div>
                   <div className="field">
-                    <label>Door Quantity (Nos.)</label>
-                    <input
-                      id="doors"
-                      type="number"
-                      min={0}
-                      value={doors}
-                      onChange={(e) => setDoors(Number(e.target.value))}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>Door Size (width × height in meters)</label>
-                    <input
-                      id="doorSize"
-                      value={doorSize}
-                      onChange={(e) => setDoorSize(e.target.value)}
-                    />
-                    <div className="unit">Standard: 0.9 x 2.1 m</div>
-                  </div>
-                  <div className="field">
-                    <label>Window Quantity (Nos.)</label>
-                    <input
-                      id="windows"
-                      type="number"
-                      min={0}
-                      value={windows}
-                      onChange={(e) => setWindows(Number(e.target.value))}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>Window Size (width × height in meters)</label>
-                    <input
-                      id="windowSize"
-                      value={windowSize}
-                      onChange={(e) => setWindowSize(e.target.value)}
-                    />
-                    <div className="unit">Standard: 1.2 x 1.2 m</div>
-                  </div>
-                  <div className="field">
-                    <label>Ventilator Quantity (Nos.)</label>
-                    <input
-                      id="vents"
-                      type="number"
-                      min={0}
-                      value={vents}
-                      onChange={(e) => setVents(Number(e.target.value))}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>Ventilator Size (width × height in meters)</label>
-                    <input
-                      id="ventSize"
-                      value={ventSize}
-                      onChange={(e) => setVentSize(e.target.value)}
-                    />
-                    <div className="unit">Standard: 0.6 x 0.45 m</div>
-                  </div>
-                  <div className="field">
                     <label>Brickwork Mortar: Cement Part</label>
                     <input
                       id="mortarC"
@@ -1644,23 +1963,285 @@ export default function App() {
                 </div>
                 <div className="actions">
                   <button type="button" className="btn secondary" onClick={() => go(4)}>
-                    ← Back: Beams & Slab
+                    ← Back: Beams & Slabs
                   </button>
                   <button type="button" className="btn primary" onClick={() => go(6)}>
-                    Next: Finishing →
+                    Next: Doors, Windows & Ventilation →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 6: Finishing, Electrical & Plumbing */}
+            {/* Step 6: Dedicated Openings (Doors, Windows, and Ventilation separately) */}
             {currentStep === 6 && (
               <section className="page" data-page="6">
-                <h2>Finishing, Electrical & Plumbing</h2>
-                <p className="sub">Enter plastering, flooring, paint coats, and MEP quantities in metric units.</p>
+                <h2>Openings (Doors, Windows & Ventilation)</h2>
+                <p className="sub">
+                  Dedicated separate options for Doors, Windows, and Ventilators. All openings are accurately deducted from gross brickwork and plastering.
+                </p>
+
+                <div className="field full">
+                  <div className="live-badge">
+                    <span>🚪 Doors: <strong>{fmt(totalDoorArea)} m²</strong> ({totalDoorCount} pcs)</span>
+                    <span style={{ margin: '0 8px' }}>|</span>
+                    <span>🪟 Windows: <strong>{fmt(totalWindowArea)} m²</strong> ({totalWindowCount} pcs)</span>
+                    <span style={{ margin: '0 8px' }}>|</span>
+                    <span>💨 Vents: <strong>{fmt(totalVentArea)} m²</strong> ({totalVentCount} pcs)</span>
+                    <span style={{ margin: '0 8px' }}>|</span>
+                    <span>Total Deducted: <strong>{fmt(totalOpeningsArea)} m²</strong></span>
+                  </div>
+                </div>
+
+                {/* 1. SEPARATE DOORS SECTION */}
+                <div className="column-type" style={{ marginTop: '16px', borderLeft: '4px solid #1268a5' }}>
+                  <div className="column-type-head">
+                    <div>
+                      <strong style={{ fontSize: '16px', color: '#1268a5' }}>🚪 Door Openings Configuration</strong>
+                      <div className="unit">Define different door types (Main door, Bedroom doors, Toilet doors) with Width and Height in meters.</div>
+                    </div>
+                  </div>
+
+                  <div id="doorsList">
+                    {doorsList.map((door, index) => {
+                      const dArea = door.count * door.width * door.height;
+                      return (
+                        <div key={door.id} className="item" style={{ background: '#fff' }}>
+                          <div className="item-head">
+                            <strong>{door.label || `Door ${index + 1}`} · Total Area: {fmt(dArea)} m²</strong>
+                            {doorsList.length > 1 && (
+                              <button
+                                type="button"
+                                className="remove"
+                                onClick={() => removeDoor(door.id)}
+                              >
+                                Remove Door
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid">
+                            <div className="field">
+                              <label>Door Type Name</label>
+                              <input
+                                type="text"
+                                value={door.label}
+                                onChange={(e) => updateDoor(door.id, 'label', e.target.value)}
+                              />
+                            </div>
+                            <div className="field">
+                              <label>Door Quantity (Nos.)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                value={door.count}
+                                onChange={(e) => updateDoor(door.id, 'count', Number(e.target.value))}
+                              />
+                            </div>
+                            <div className="field">
+                              <label>Door Width (meters)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                step=".05"
+                                value={door.width}
+                                onChange={(e) => updateDoor(door.id, 'width', Number(e.target.value))}
+                              />
+                              <div className="unit">e.g. 1.0 m or 0.9 m</div>
+                            </div>
+                            <div className="field">
+                              <label>Door Height (meters)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                step=".05"
+                                value={door.height}
+                                onChange={(e) => updateDoor(door.id, 'height', Number(e.target.value))}
+                              />
+                              <div className="unit">e.g. 2.1 m (7 ft)</div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button type="button" className="add" onClick={addDoor}>
+                    ＋ Add Another Door Type
+                  </button>
+                </div>
+
+                {/* 2. SEPARATE WINDOWS SECTION */}
+                <div className="column-type" style={{ marginTop: '18px', borderLeft: '4px solid #22b8cf' }}>
+                  <div className="column-type-head">
+                    <div>
+                      <strong style={{ fontSize: '16px', color: '#097180' }}>🪟 Window Openings Configuration</strong>
+                      <div className="unit">Define different window sizes (Large hall windows, Bedroom windows, Kitchen windows) in meters.</div>
+                    </div>
+                  </div>
+
+                  <div id="windowsList">
+                    {windowsList.map((win, index) => {
+                      const wArea = win.count * win.width * win.height;
+                      return (
+                        <div key={win.id} className="item" style={{ background: '#fff' }}>
+                          <div className="item-head">
+                            <strong>{win.label || `Window ${index + 1}`} · Total Area: {fmt(wArea)} m²</strong>
+                            {windowsList.length > 1 && (
+                              <button
+                                type="button"
+                                className="remove"
+                                onClick={() => removeWindow(win.id)}
+                              >
+                                Remove Window
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid">
+                            <div className="field">
+                              <label>Window Type Name</label>
+                              <input
+                                type="text"
+                                value={win.label}
+                                onChange={(e) => updateWindow(win.id, 'label', e.target.value)}
+                              />
+                            </div>
+                            <div className="field">
+                              <label>Window Quantity (Nos.)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                value={win.count}
+                                onChange={(e) => updateWindow(win.id, 'count', Number(e.target.value))}
+                              />
+                            </div>
+                            <div className="field">
+                              <label>Window Width (meters)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                step=".05"
+                                value={win.width}
+                                onChange={(e) => updateWindow(win.id, 'width', Number(e.target.value))}
+                              />
+                              <div className="unit">e.g. 1.2 m or 1.5 m</div>
+                            </div>
+                            <div className="field">
+                              <label>Window Height (meters)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                step=".05"
+                                value={win.height}
+                                onChange={(e) => updateWindow(win.id, 'height', Number(e.target.value))}
+                              />
+                              <div className="unit">e.g. 1.2 m (4 ft)</div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button type="button" className="add" onClick={addWindow}>
+                    ＋ Add Another Window Type
+                  </button>
+                </div>
+
+                {/* 3. SEPARATE VENTILATORS SECTION */}
+                <div className="column-type" style={{ marginTop: '18px', borderLeft: '4px solid #ffc24b' }}>
+                  <div className="column-type-head">
+                    <div>
+                      <strong style={{ fontSize: '16px', color: '#976607' }}>💨 Ventilation Openings Configuration</strong>
+                      <div className="unit">Specify ventilation and exhaust fan openings for bathrooms, kitchen, and utility shafts in meters.</div>
+                    </div>
+                  </div>
+
+                  <div id="ventsList">
+                    {ventsList.map((vent, index) => {
+                      const vArea = vent.count * vent.width * vent.height;
+                      return (
+                        <div key={vent.id} className="item" style={{ background: '#fff' }}>
+                          <div className="item-head">
+                            <strong>{vent.label || `Ventilator ${index + 1}`} · Total Area: {fmt(vArea)} m²</strong>
+                            {ventsList.length > 1 && (
+                              <button
+                                type="button"
+                                className="remove"
+                                onClick={() => removeVentilator(vent.id)}
+                              >
+                                Remove Ventilator
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid">
+                            <div className="field">
+                              <label>Ventilator Type Name</label>
+                              <input
+                                type="text"
+                                value={vent.label}
+                                onChange={(e) => updateVentilator(vent.id, 'label', e.target.value)}
+                              />
+                            </div>
+                            <div className="field">
+                              <label>Ventilator Quantity (Nos.)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                value={vent.count}
+                                onChange={(e) => updateVentilator(vent.id, 'count', Number(e.target.value))}
+                              />
+                            </div>
+                            <div className="field">
+                              <label>Ventilator Width (meters)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                step=".05"
+                                value={vent.width}
+                                onChange={(e) => updateVentilator(vent.id, 'width', Number(e.target.value))}
+                              />
+                              <div className="unit">e.g. 0.6 m</div>
+                            </div>
+                            <div className="field">
+                              <label>Ventilator Height (meters)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                step=".05"
+                                value={vent.height}
+                                onChange={(e) => updateVentilator(vent.id, 'height', Number(e.target.value))}
+                              />
+                              <div className="unit">e.g. 0.45 m</div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button type="button" className="add" onClick={addVentilator}>
+                    ＋ Add Another Ventilator Type
+                  </button>
+                </div>
+
+                <div className="actions">
+                  <button type="button" className="btn secondary" onClick={() => go(5)}>
+                    ← Back: Walls & Rooms
+                  </button>
+                  <button type="button" className="btn primary" onClick={() => go(7)}>
+                    Next: Finishing & Tiles →
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {/* Step 7: Finishing, Tiles, Electrical & Plumbing */}
+            {currentStep === 7 && (
+              <section className="page" data-page="7">
+                <h2>Finishing, Tiles & Services</h2>
+                <p className="sub">Enter floor tiles, wall dado tiles, plastering, paint coats, and MEP specifications.</p>
                 <div className="grid">
                   <div className="field">
-                    <label>Flooring Area (sq.m; 0 = auto built-up area)</label>
+                    <label>Floor Tiles Area (sq.m; 0 = auto from slab area)</label>
                     <input
                       id="floorArea"
                       type="number"
@@ -1669,6 +2250,19 @@ export default function App() {
                       value={floorArea}
                       onChange={(e) => setFloorArea(Number(e.target.value))}
                     />
+                    <div className="unit">Vitrified / ceramic tile flooring area</div>
+                  </div>
+                  <div className="field">
+                    <label>Wall Dado Tiles Area (Bathrooms & Kitchens sq.m)</label>
+                    <input
+                      id="wallTilesArea"
+                      type="number"
+                      min={0}
+                      step=".5"
+                      value={wallTilesArea}
+                      onChange={(e) => setWallTilesArea(Number(e.target.value))}
+                    />
+                    <div className="unit">Glazed ceramic wall tiles up to 7ft height</div>
                   </div>
                   <div className="field">
                     <label>Plaster Sides (1 or 2)</label>
@@ -1737,21 +2331,28 @@ export default function App() {
                   </div>
                 </div>
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(5)}>
-                    ← Back: Walls & Rooms
+                  <button type="button" className="btn secondary" onClick={() => go(6)}>
+                    ← Back: Openings
                   </button>
-                  <button type="button" className="btn primary" onClick={() => go(7)}>
+                  <button type="button" className="btn primary" onClick={() => go(8)}>
                     Next: Rates →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 7: Material & Labour Rates */}
-            {currentStep === 7 && (
-              <section className="page" data-page="7">
+            {/* Step 8: Material & Labour Rates */}
+            {currentStep === 8 && (
+              <section className="page" data-page="8">
                 <h2>Material & Labour Rates (Metric Units)</h2>
-                <p className="sub">Enter market rates in Indian Rupees (₹) per standard metric unit.</p>
+                <p className="sub">
+                  Market rates in Indian Rupees (₹) for all newly configured items including Tiles, Doors, Windows, Ventilators, and Slab Formwork.
+                </p>
+
+                {/* 1. Structural & Core Materials */}
+                <h3 style={{ margin: '18px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  1. Core Civil Materials & Earthwork
+                </h3>
                 <div className="grid">
                   <div className="field">
                     <label>Cement (₹ / 50kg bag)</label>
@@ -1772,10 +2373,10 @@ export default function App() {
                       value={sandRate}
                       onChange={(e) => setSandRate(Number(e.target.value))}
                     />
-                    <div className="unit">Standard river/manufactured sand rate per m³</div>
+                    <div className="unit">River/manufactured sand per m³</div>
                   </div>
                   <div className="field">
-                    <label>Aggregate / Coarse Gravel (₹ / cu.m / m³)</label>
+                    <label>Aggregate / Gravel (₹ / cu.m / m³)</label>
                     <input
                       id="aggRate"
                       type="number"
@@ -1783,7 +2384,7 @@ export default function App() {
                       value={aggRate}
                       onChange={(e) => setAggRate(Number(e.target.value))}
                     />
-                    <div className="unit">Standard blue metal gravel per m³</div>
+                    <div className="unit">Blue metal coarse gravel per m³</div>
                   </div>
                   <div className="field">
                     <label>Reinforcement Steel (₹ / kg)</label>
@@ -1815,8 +2416,26 @@ export default function App() {
                       onChange={(e) => setExcRate(Number(e.target.value))}
                     />
                   </div>
+                </div>
+
+                {/* 2. Structural Labour & Slab Formwork */}
+                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  2. Slab Formwork & Structural Labour
+                </h3>
+                <div className="grid">
                   <div className="field">
-                    <label>Labour - Construction (₹ / sq.m built-up)</label>
+                    <label>Slab & Beam Formwork / Shuttering (₹ / sq.m)</label>
+                    <input
+                      id="shutteringRate"
+                      type="number"
+                      min={0}
+                      value={shutteringRate}
+                      onChange={(e) => setShutteringRate(Number(e.target.value))}
+                    />
+                    <div className="unit">Centering, staging & de-shuttering per m² of slab</div>
+                  </div>
+                  <div className="field">
+                    <label>Structural Construction Labour (₹ / sq.m built-up)</label>
                     <input
                       id="labourRate"
                       type="number"
@@ -1824,10 +2443,57 @@ export default function App() {
                       value={labourRate}
                       onChange={(e) => setLabourRate(Number(e.target.value))}
                     />
-                    <div className="unit">Civil structure labour rate per m²</div>
+                    <div className="unit">Civil masonry & casting labour rate</div>
+                  </div>
+                </div>
+
+                {/* 3. Openings (Doors, Windows & Ventilators Rates) */}
+                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  3. Openings Supply & Installation Rates (Doors, Windows, Vents)
+                </h3>
+                <div className="grid">
+                  <div className="field">
+                    <label>Doors: Supply & Fixing (₹ / door)</label>
+                    <input
+                      id="doorRate"
+                      type="number"
+                      min={0}
+                      value={doorRate}
+                      onChange={(e) => setDoorRate(Number(e.target.value))}
+                    />
+                    <div className="unit">Frame + flush/panel shutter + lock & fittings</div>
                   </div>
                   <div className="field">
-                    <label>Flooring (₹ / sq.m)</label>
+                    <label>Windows: Supply & Fixing (₹ / window)</label>
+                    <input
+                      id="windowRate"
+                      type="number"
+                      min={0}
+                      value={windowRate}
+                      onChange={(e) => setWindowRate(Number(e.target.value))}
+                    />
+                    <div className="unit">Section frame + glass panes + MS safety grill</div>
+                  </div>
+                  <div className="field">
+                    <label>Ventilators: Supply & Fixing (₹ / ventilator)</label>
+                    <input
+                      id="ventRate"
+                      type="number"
+                      min={0}
+                      value={ventRate}
+                      onChange={(e) => setVentRate(Number(e.target.value))}
+                    />
+                    <div className="unit">Louvers + glass + exhaust fan provision</div>
+                  </div>
+                </div>
+
+                {/* 4. Tiles, Finishing & Services */}
+                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  4. Tiles, Finishing & MEP Services Rates
+                </h3>
+                <div className="grid">
+                  <div className="field">
+                    <label>Floor Tiles: Material + Laying (₹ / sq.m)</label>
                     <input
                       id="floorRate"
                       type="number"
@@ -1835,6 +2501,18 @@ export default function App() {
                       value={floorRate}
                       onChange={(e) => setFloorRate(Number(e.target.value))}
                     />
+                    <div className="unit">Vitrified tiles + cement mortar bedding & grout</div>
+                  </div>
+                  <div className="field">
+                    <label>Wall Dado Tiles: Material + Laying (₹ / sq.m)</label>
+                    <input
+                      id="wallTilesRate"
+                      type="number"
+                      min={0}
+                      value={wallTilesRate}
+                      onChange={(e) => setWallTilesRate(Number(e.target.value))}
+                    />
+                    <div className="unit">Glazed wall tiles for bathrooms & kitchens</div>
                   </div>
                   <div className="field">
                     <label>Plastering (₹ / sq.m)</label>
@@ -1887,7 +2565,7 @@ export default function App() {
                     />
                   </div>
                   <div className="field">
-                    <label>Miscellaneous / Finishing (₹ Lump sum)</label>
+                    <label>Miscellaneous / Site Expenses (₹ Lump sum)</label>
                     <input
                       id="miscRate"
                       type="number"
@@ -1917,9 +2595,10 @@ export default function App() {
                     />
                   </div>
                 </div>
+
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(6)}>
-                    ← Back: Finishing
+                  <button type="button" className="btn secondary" onClick={() => go(7)}>
+                    ← Back: Finishing & Tiles
                   </button>
                   <button type="button" className="btn primary" onClick={handleCalculate}>
                     Calculate Complete Estimate
@@ -1951,8 +2630,32 @@ export default function App() {
                 <b id="rRcc">{fmt(calcData.rccCft)} cu.m (m³)</b>
               </div>
               <div className="metric">
+                <small>Slab Concrete Volume</small>
+                <b>{fmt(calcData.slabVolume)} cu.m (m³)</b>
+              </div>
+              <div className="metric">
+                <small>Slab Formwork Area</small>
+                <b>{fmt(calcData.slabFormworkArea)} sq.m</b>
+              </div>
+              <div className="metric">
                 <small>Brickwork Volume</small>
                 <b id="rBrickwork">{fmt(calcData.wallVol)} cu.m (m³)</b>
+              </div>
+              <div className="metric">
+                <small>Openings Deducted</small>
+                <b>{fmt(calcData.openingsArea)} sq.m</b>
+              </div>
+              <div className="metric">
+                <small>Doors & Windows</small>
+                <b>{calcData.doorCount}D / {calcData.windowCount}W / {calcData.ventCount}V</b>
+              </div>
+              <div className="metric">
+                <small>Floor Tiles Area</small>
+                <b>{fmt(calcData.calcFloorArea)} sq.m</b>
+              </div>
+              <div className="metric">
+                <small>Wall Dado Tiles</small>
+                <b>{fmt(calcData.calcWallTilesArea)} sq.m</b>
               </div>
               <div className="metric">
                 <small>Cement Required</small>
@@ -1977,14 +2680,6 @@ export default function App() {
               <div className="metric">
                 <small>Plaster Area</small>
                 <b id="rPlaster">{fmt(calcData.plasterArea)} sq.m</b>
-              </div>
-              <div className="metric">
-                <small>Flooring Area</small>
-                <b id="rFloor">{fmt(calcData.calcFloorArea)} sq.m</b>
-              </div>
-              <div className="metric">
-                <small>Paint Area</small>
-                <b id="rPaint">{fmt(calcData.paintArea)} sq.m</b>
               </div>
             </div>
 
@@ -2035,7 +2730,7 @@ export default function App() {
             </p>
 
             <div className="note">
-              <b>Engineering Note:</b> This is a preliminary planning estimate calculated with standard civil engineering volumetric formulas, not a final structural design or tender contract BOQ. Concrete dry-volume conversion factor 1.54 is utilized for RCC concrete (1 standard cement bag = 50 kg ~ 0.0347 m³), mortar dry-volume factor 1.33 for brickwork and plastering. Steel consumption (kg/m³), brick count (pcs/m³), and material rates are fully customizable assumptions. Total wall lengths include external and internal partition walls without double-counting shared partitions. Openings are deducted based on provided width and height. Always consult a licensed civil or structural engineer to review foundation soil bearing capacity, structural drawings, bar bending schedules, and local site conditions.
+              <b>Engineering Note:</b> This preliminary planning estimate uses standard civil engineering volumetric formulas. All newly added architectural options (Floor Tiles, Wall Dado Tiles, Doors, Windows, Ventilators, and Slab Formwork) are itemized at their respective unit rates in the BOQ. Concrete dry-volume conversion factor 1.54 is utilized for RCC concrete (1 standard cement bag = 50 kg ~ 0.0347 m³), and mortar dry-volume factor 1.33 for brickwork and plastering. All openings are deducted from masonry and plastering. Always consult a licensed civil or structural engineer to review site conditions and structural drawings.
             </div>
 
             <div className="actions">
@@ -2043,7 +2738,7 @@ export default function App() {
                 className="btn secondary"
                 onClick={() => {
                   setShowResult(false);
-                  go(7);
+                  go(8);
                 }}
               >
                 ← Edit Rates
