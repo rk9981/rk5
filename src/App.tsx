@@ -99,7 +99,7 @@ export default function App() {
   const [regSuccess, setRegSuccess] = useState<string>('');
 
   // Stepper state (0 to 8)
-  // 0: Project, 1: Excavation, 2: Footings, 3: Columns, 4: Beams & Slabs, 5: Walls & Rooms, 6: Openings, 7: Finishing, 8: Rates
+  // 0: 1. Footings & Excavation, 1: 2. Columns, 2: 3. Plinth Beam, 3: 4. Slab Beam, 4: 5. Slab, 5: 6. Brick Work, 6: 7. Plaster, 7: 8. Tiles & Finishing, 8: 9. Rates
   const [currentStep, setCurrentStep] = useState<number>(0);
 
   // Step 1: Project Details (Metric)
@@ -1187,64 +1187,71 @@ export default function App() {
               className={`step ${currentStep === 0 ? 'active' : currentStep > 0 ? 'done' : ''}`}
               onClick={() => go(0)}
             >
-              1. Project
+              1. Footings & Excavation
             </div>
             <div
               className={`step ${currentStep === 1 ? 'active' : currentStep > 1 ? 'done' : ''}`}
               onClick={() => go(1)}
             >
-              2. Excavation
+              2. Columns
             </div>
             <div
               className={`step ${currentStep === 2 ? 'active' : currentStep > 2 ? 'done' : ''}`}
               onClick={() => go(2)}
             >
-              3. Footings
+              3. Plinth Beam
             </div>
             <div
               className={`step ${currentStep === 3 ? 'active' : currentStep > 3 ? 'done' : ''}`}
               onClick={() => go(3)}
             >
-              4. Columns
+              4. Slab Beam
             </div>
             <div
               className={`step ${currentStep === 4 ? 'active' : currentStep > 4 ? 'done' : ''}`}
               onClick={() => go(4)}
             >
-              5. Plinth Beam, Slab Beam & Slab
+              5. Slab
             </div>
             <div
               className={`step ${currentStep === 5 ? 'active' : currentStep > 5 ? 'done' : ''}`}
               onClick={() => go(5)}
             >
-              6. Walls & Rooms
+              6. Brick Work
             </div>
             <div
               className={`step ${currentStep === 6 ? 'active' : currentStep > 6 ? 'done' : ''}`}
               onClick={() => go(6)}
             >
-              7. Openings
+              7. Plaster
             </div>
             <div
               className={`step ${currentStep === 7 ? 'active' : currentStep > 7 ? 'done' : ''}`}
               onClick={() => go(7)}
             >
-              8. Finishing & Tiles
+              8. Tiles & Finishing
             </div>
             <div
               className={`step ${currentStep === 8 ? 'active' : ''}`}
               onClick={() => go(8)}
             >
-              9. Rates
+              9. Rates & BOQ
             </div>
           </div>
 
           <form id="form" onSubmit={(e) => e.preventDefault()}>
-            {/* Step 0: Project Details */}
+            {/* Step 0: 1. Footings & Excavation (Project Overview + Excavation + Footing Concrete) */}
             {currentStep === 0 && (
               <section className="page" data-page="0">
-                <h2>Project Details</h2>
-                <p className="sub">Enter general building, plot, and floor area details in metric units.</p>
+                <h2>1. Footings & Excavation</h2>
+                <p className="sub">
+                  Enter project overview details, foundation earthwork excavation pits, and reinforced concrete footings in metric units.
+                </p>
+
+                {/* 1. Project Details */}
+                <h3 style={{ margin: '14px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  Project Overview
+                </h3>
                 <div className="grid">
                   <div className="field">
                     <label>Project / Owner Name</label>
@@ -1315,23 +1322,11 @@ export default function App() {
                     <div className="unit">e.g. 95 sq.m (~1020 sq.ft)</div>
                   </div>
                 </div>
-                <div className="actions">
-                  <span></span>
-                  <button type="button" className="btn primary" onClick={() => go(1)}>
-                    Next: Excavation →
-                  </button>
-                </div>
-              </section>
-            )}
 
-            {/* Step 1: Excavation (Dedicated Option) */}
-            {currentStep === 1 && (
-              <section className="page" data-page="1">
-                <h2>Earthwork & Excavation</h2>
-                <p className="sub">
-                  Define excavation pit dimensions and working space margins in meters. Once filled, proceed to Footings.
-                </p>
-
+                {/* 2. Earthwork & Excavation */}
+                <h3 style={{ margin: '24px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  Earthwork & Excavation Pits
+                </h3>
                 <div className="field full">
                   <div className="live-badge">
                     <span>🚜 Total Excavation Volume:</span>
@@ -1487,25 +1482,10 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(0)}>
-                    ← Back: Project
-                  </button>
-                  <button type="button" className="btn primary" onClick={() => go(2)}>
-                    Next: Footings →
-                  </button>
-                </div>
-              </section>
-            )}
-
-            {/* Step 2: Footings (Dedicated Option) */}
-            {currentStep === 2 && (
-              <section className="page" data-page="2">
-                <h2>Footing (Foundation Concrete)</h2>
-                <p className="sub">
-                  Excavation filled! Now enter reinforced concrete footing dimensions and quantities in meters.
-                </p>
-
+                {/* 3. Footing Concrete */}
+                <h3 style={{ margin: '24px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  Reinforced Concrete Footing Sizing
+                </h3>
                 <div className="field full">
                   <div className="live-badge">
                     <span>🏗️ Total Footing Concrete:</span>
@@ -1606,22 +1586,20 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(1)}>
-                    ← Back: Excavation
-                  </button>
-                  <button type="button" className="btn primary" onClick={() => go(3)}>
+                  <span></span>
+                  <button type="button" className="btn primary" onClick={() => go(1)}>
                     Next: Columns →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 3: Columns (Dedicated Option) */}
-            {currentStep === 3 && (
-              <section className="page" data-page="3">
-                <h2>Column Sizing & Geometry</h2>
+            {/* Step 1: 2. Columns */}
+            {currentStep === 1 && (
+              <section className="page" data-page="1">
+                <h2>2. Columns</h2>
                 <p className="sub">
-                  Footing filled! Now configure column sizes (width, depth, height) and quantities in meters.
+                  Footings & Excavation complete! Now configure column sizes (width, depth, height) and quantities in meters.
                 </p>
 
                 <div className="field full">
@@ -1724,40 +1702,39 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(2)}>
-                    ← Back: Footings
+                  <button type="button" className="btn secondary" onClick={() => go(0)}>
+                    ← Back: Footings & Excavation
                   </button>
-                  <button type="button" className="btn primary" onClick={() => go(4)}>
-                    Next: Beams & Slabs →
+                  <button type="button" className="btn primary" onClick={() => go(2)}>
+                    Next: Plinth Beam →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 4: RCC Superstructure (Slab Beam & Slab Dimensions) */}
-            {currentStep === 4 && (
-              <section className="page" data-page="4">
-                <h2>Plinth Beam, Slab Beam & Slab Dimensions</h2>
+            {/* Step 2: 3. Plinth Beam */}
+            {currentStep === 2 && (
+              <section className="page" data-page="2">
+                <h2>3. Plinth Beam</h2>
                 <p className="sub">
-                  Configure separate dedicated options for Plinth Beam, Slab Beam, and Slab panels, along with concrete mix specifications.
+                  Configure dedicated Plinth Beam (ground / foundation level tie-beams) running length and cross-section dimensions.
                 </p>
 
-                {/* 1. PLINTH BEAM OPTION */}
+                <div className="field full" style={{ marginBottom: '14px' }}>
+                  <div className="live-badge" style={{ background: '#e0f2fe', borderColor: '#7dd3fc', color: '#0369a1' }}>
+                    <span>Plinth Beam Running Length: <strong>{fmt(Number(plinthBeamLength) || 0)} m</strong></span>
+                    <span style={{ margin: '0 8px' }}>|</span>
+                    <span>Cross-Section: <strong>{Number(plinthBeamW) || 0}m × {Number(plinthBeamD) || 0}m</strong></span>
+                    <span style={{ margin: '0 8px' }}>|</span>
+                    <span>Plinth Beam Concrete: <strong>{fmt(totalPlinthBeamVolume)} cu.m (m³)</strong></span>
+                  </div>
+                </div>
+
                 <div className="column-type" style={{ background: '#f8fbfe', border: '1px solid #bde0f5' }}>
                   <div className="column-type-head">
                     <div>
-                      <strong style={{ fontSize: '16px', color: '#153d5c' }}>🏗️ Plinth Beam Option (Ground / Foundation Level Beams)</strong>
-                      <div className="unit">Specify running length, cross-section width, and depth for tie/plinth beams.</div>
-                    </div>
-                  </div>
-
-                  <div className="field full" style={{ marginBottom: '14px' }}>
-                    <div className="live-badge" style={{ background: '#e0f2fe', borderColor: '#7dd3fc', color: '#0369a1' }}>
-                      <span>Plinth Beam Length: <strong>{fmt(Number(plinthBeamLength) || 0)} m</strong></span>
-                      <span style={{ margin: '0 8px' }}>|</span>
-                      <span>Plinth Beam Cross-Section: <strong>{Number(plinthBeamW) || 0}m × {Number(plinthBeamD) || 0}m</strong></span>
-                      <span style={{ margin: '0 8px' }}>|</span>
-                      <span>Plinth Beam Concrete Volume: <strong>{fmt(totalPlinthBeamVolume)} cu.m (m³)</strong></span>
+                      <strong style={{ fontSize: '16px', color: '#153d5c' }}>🏗️ Plinth Beam (Tie-Beam) Sizing</strong>
+                      <div className="unit">Ground floor level foundation beam spanning between all columns.</div>
                     </div>
                   </div>
 
@@ -1772,7 +1749,7 @@ export default function App() {
                         value={plinthBeamLength}
                         onChange={(e) => setPlinthBeamLength(Number(e.target.value))}
                       />
-                      <div className="unit">Plinth level tie-beam running length</div>
+                      <div className="unit">Total linear meters of plinth beams</div>
                     </div>
                     <div className="field">
                       <label>Plinth Beam Width (meters)</label>
@@ -1801,22 +1778,40 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 2. SLAB BEAM OPTION */}
-                <div className="column-type" style={{ marginTop: '20px', background: '#f8fbfe', border: '1px solid #bde0f5' }}>
+                <div className="actions">
+                  <button type="button" className="btn secondary" onClick={() => go(1)}>
+                    ← Back: Columns
+                  </button>
+                  <button type="button" className="btn primary" onClick={() => go(3)}>
+                    Next: Slab Beam →
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {/* Step 3: 4. Slab Beam */}
+            {currentStep === 3 && (
+              <section className="page" data-page="3">
+                <h2>4. Slab Beam</h2>
+                <p className="sub">
+                  Configure dedicated Slab Beam (floor and roof level beams) running length, cross-section dimensions, and concrete mix ratio.
+                </p>
+
+                <div className="field full" style={{ marginBottom: '14px' }}>
+                  <div className="live-badge" style={{ background: '#e0f2fe', borderColor: '#7dd3fc', color: '#0369a1' }}>
+                    <span>Slab Beam Running Length: <strong>{fmt(Number(beamLength) || 0)} m</strong></span>
+                    <span style={{ margin: '0 8px' }}>|</span>
+                    <span>Cross-Section: <strong>{Number(beamW) || 0}m × {Number(beamD) || 0}m</strong></span>
+                    <span style={{ margin: '0 8px' }}>|</span>
+                    <span>Slab Beam Concrete: <strong>{fmt(totalSlabBeamVolume)} cu.m (m³)</strong></span>
+                  </div>
+                </div>
+
+                <div className="column-type" style={{ background: '#f8fbfe', border: '1px solid #bde0f5' }}>
                   <div className="column-type-head">
                     <div>
-                      <strong style={{ fontSize: '16px', color: '#153d5c' }}>📐 Slab Beam Option (Floor & Roof Slabs Beams)</strong>
-                      <div className="unit">Specify running length, cross-section width, and depth for floor & roof slab beams.</div>
-                    </div>
-                  </div>
-
-                  <div className="field full" style={{ marginBottom: '14px' }}>
-                    <div className="live-badge" style={{ background: '#e0f2fe', borderColor: '#7dd3fc', color: '#0369a1' }}>
-                      <span>Slab Beam Running Length: <strong>{fmt(Number(beamLength) || 0)} m</strong></span>
-                      <span style={{ margin: '0 8px' }}>|</span>
-                      <span>Slab Beam Cross-Section: <strong>{Number(beamW) || 0}m × {Number(beamD) || 0}m</strong></span>
-                      <span style={{ margin: '0 8px' }}>|</span>
-                      <span>Slab Beam Concrete Volume: <strong>{fmt(totalSlabBeamVolume)} cu.m (m³)</strong></span>
+                      <strong style={{ fontSize: '16px', color: '#153d5c' }}>📐 Floor & Roof Slab Beams Sizing</strong>
+                      <div className="unit">Beams supporting slabs at each floor and roof level.</div>
                     </div>
                   </div>
 
@@ -1831,7 +1826,7 @@ export default function App() {
                         value={beamLength}
                         onChange={(e) => setBeamLength(Number(e.target.value))}
                       />
-                      <div className="unit">Floor + roof level beams length</div>
+                      <div className="unit">Floor + roof level beams length across all floors</div>
                     </div>
                     <div className="field">
                       <label>Slab Beam Width (meters)</label>
@@ -1860,8 +1855,69 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 2. SLAB OPTION (ROOF & FLOOR SLABS) */}
-                <div className="column-type" style={{ marginTop: '20px', background: '#fdfefe', border: '1px solid #c7d2fe' }}>
+                {/* Concrete Mix Ratio for Beams */}
+                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  Concrete Mix Ratio (Cement : Sand : Aggregate)
+                </h3>
+                <div className="grid">
+                  <div className="field">
+                    <label>Cement Part</label>
+                    <input
+                      id="mixC"
+                      type="number"
+                      min={0.1}
+                      step=".1"
+                      value={mixC}
+                      onChange={(e) => setMixC(Number(e.target.value))}
+                    />
+                    <div className="unit">e.g. 1 for M20 (1:1.5:3) or M15 (1:2:4)</div>
+                  </div>
+                  <div className="field">
+                    <label>Sand Part</label>
+                    <input
+                      id="mixS"
+                      type="number"
+                      min={0}
+                      step=".1"
+                      value={mixS}
+                      onChange={(e) => setMixS(Number(e.target.value))}
+                    />
+                    <div className="unit">e.g. 1.5 for M20</div>
+                  </div>
+                  <div className="field">
+                    <label>Aggregate Part</label>
+                    <input
+                      id="mixA"
+                      type="number"
+                      min={0}
+                      step=".1"
+                      value={mixA}
+                      onChange={(e) => setMixA(Number(e.target.value))}
+                    />
+                    <div className="unit">e.g. 3.0 for M20</div>
+                  </div>
+                </div>
+
+                <div className="actions">
+                  <button type="button" className="btn secondary" onClick={() => go(2)}>
+                    ← Back: Plinth Beam
+                  </button>
+                  <button type="button" className="btn primary" onClick={() => go(4)}>
+                    Next: Slab →
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {/* Step 4: 5. Slab */}
+            {currentStep === 4 && (
+              <section className="page" data-page="4">
+                <h2>5. Slab</h2>
+                <p className="sub">
+                  Configure roof & floor slab panels, dimensions (Length, Width, Thickness), and steel reinforcement consumption.
+                </p>
+
+                <div className="column-type" style={{ background: '#fdfefe', border: '1px solid #c7d2fe' }}>
                   <div className="column-type-head">
                     <div>
                       <strong style={{ fontSize: '16px', color: '#312e81' }}>🏛️ Slab Option (Roof & Floor Slab Panels)</strong>
@@ -1897,7 +1953,7 @@ export default function App() {
                         >
                           <div className="item-head">
                             <strong>
-                              {slabItem.label || `Slab Panel ${index + 1}`} · Area: {fmt(panelArea)} m² · Slab Volume: {fmt(panelVol)} m³
+                              {slabItem.label || `Slab Panel ${index + 1}`} · Area: {fmt(panelArea)} m² · Volume: {fmt(panelVol)} m³
                             </strong>
                             {slabs.length > 1 && (
                               <button
@@ -1981,45 +2037,11 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* 3. CONCRETE MIX & STEEL SPECIFICATIONS */}
-                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '17px' }}>
-                  Concrete Mix & Steel Specifications (for Slab Beam & Slab)
+                {/* Steel Factor & Misc RCC */}
+                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  Reinforcement Steel & Misc. RCC Specifications
                 </h3>
                 <div className="grid">
-                  <div className="field">
-                    <label>Concrete Mix: Cement Part</label>
-                    <input
-                      id="mixC"
-                      type="number"
-                      min={0.1}
-                      step=".1"
-                      value={mixC}
-                      onChange={(e) => setMixC(Number(e.target.value))}
-                    />
-                    <div className="unit">e.g. 1 for M20 (1:1.5:3) or M15 (1:2:4)</div>
-                  </div>
-                  <div className="field">
-                    <label>Concrete Mix: Sand Part</label>
-                    <input
-                      id="mixS"
-                      type="number"
-                      min={0}
-                      step=".1"
-                      value={mixS}
-                      onChange={(e) => setMixS(Number(e.target.value))}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>Concrete Mix: Aggregate Part</label>
-                    <input
-                      id="mixA"
-                      type="number"
-                      min={0}
-                      step=".1"
-                      value={mixA}
-                      onChange={(e) => setMixA(Number(e.target.value))}
-                    />
-                  </div>
                   <div className="field">
                     <label>Steel Consumption (kg / m³ of RCC)</label>
                     <input
@@ -2041,25 +2063,33 @@ export default function App() {
                       value={miscRcc}
                       onChange={(e) => setMiscRcc(Number(e.target.value))}
                     />
+                    <div className="unit">Waist slab, steps, lintels & chajjas</div>
                   </div>
                 </div>
+
                 <div className="actions">
                   <button type="button" className="btn secondary" onClick={() => go(3)}>
-                    ← Back: Columns
+                    ← Back: Slab Beam
                   </button>
                   <button type="button" className="btn primary" onClick={() => go(5)}>
-                    Next: Walls & Rooms →
+                    Next: Brick Work →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 5: Walls & Rooms */}
+            {/* Step 5: 6. Brick Work */}
             {currentStep === 5 && (
               <section className="page" data-page="5">
-                <h2>Rooms & Wall Measurements</h2>
-                <p className="sub">Add room configurations and specify total wall dimensions in meters.</p>
+                <h2>6. Brick Work & Openings</h2>
+                <p className="sub">
+                  Configure room measurements, masonry wall dimensions, and dedicated openings (Doors, Windows, and Ventilation).
+                </p>
 
+                {/* Rooms Planner */}
+                <h3 style={{ margin: '14px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  Room Configuration Planner
+                </h3>
                 <div id="rooms">
                   {rooms.map((room, index) => (
                     <div key={room.id} className="item">
@@ -2132,7 +2162,11 @@ export default function App() {
                   ＋ Add Room
                 </button>
 
-                <div className="grid" style={{ marginTop: '18px' }}>
+                {/* Wall Dimensions */}
+                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  Wall Dimensions & Mortar Specification
+                </h3>
+                <div className="grid">
                   <div className="field">
                     <label>Total Wall Length (running meters / floor)</label>
                     <input
@@ -2155,7 +2189,7 @@ export default function App() {
                       value={wallHeight}
                       onChange={(e) => setWallHeight(Number(e.target.value))}
                     />
-                    <div className="unit">Floor-to-ceiling height (e.g. 3.0 m) · Feeds into Plaster Formula (2 × L × H)</div>
+                    <div className="unit">Floor-to-ceiling height (e.g. 3.0 m) · Used in Plaster Formula (2 × L × H)</div>
                   </div>
                   <div className="field">
                     <label>Wall Thickness (meters)</label>
@@ -2204,23 +2238,13 @@ export default function App() {
                     <div className="unit">Standard metric brick: 500 pcs / m³</div>
                   </div>
                 </div>
-                <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(4)}>
-                    ← Back: Beams & Slabs
-                  </button>
-                  <button type="button" className="btn primary" onClick={() => go(6)}>
-                    Next: Doors, Windows & Ventilation →
-                  </button>
-                </div>
-              </section>
-            )}
 
-            {/* Step 6: Dedicated Openings (Doors, Windows, and Ventilation separately) */}
-            {currentStep === 6 && (
-              <section className="page" data-page="6">
-                <h2>Openings (Doors, Windows & Ventilation)</h2>
-                <p className="sub">
-                  Dedicated separate options for Doors, Windows, and Ventilators. All openings are accurately deducted from gross brickwork and plastering.
+                {/* Dedicated Openings Section */}
+                <h3 style={{ margin: '26px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  Openings Configuration (Doors, Windows & Ventilation)
+                </h3>
+                <p className="unit" style={{ marginBottom: '10px' }}>
+                  All opening areas are automatically deducted from brickwork masonry and plaster calculations.
                 </p>
 
                 <div className="field full">
@@ -2235,22 +2259,21 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 1. SEPARATE DOORS SECTION */}
-                <div className="column-type" style={{ marginTop: '16px', borderLeft: '4px solid #1268a5' }}>
+                {/* Doors List */}
+                <div className="column-type" style={{ marginTop: '14px', borderLeft: '4px solid #1268a5' }}>
                   <div className="column-type-head">
                     <div>
-                      <strong style={{ fontSize: '16px', color: '#1268a5' }}>🚪 Door Openings Configuration</strong>
-                      <div className="unit">Define different door types (Main door, Bedroom doors, Toilet doors) with Width and Height in meters.</div>
+                      <strong style={{ fontSize: '15px', color: '#1268a5' }}>🚪 Door Openings</strong>
+                      <div className="unit">Main entrance, bedroom, and toilet doors.</div>
                     </div>
                   </div>
-
                   <div id="doorsList">
                     {doorsList.map((door, index) => {
                       const dArea = door.count * door.width * door.height;
                       return (
                         <div key={door.id} className="item" style={{ background: '#fff' }}>
                           <div className="item-head">
-                            <strong>{door.label || `Door ${index + 1}`} · Total Area: {fmt(dArea)} m²</strong>
+                            <strong>{door.label || `Door ${index + 1}`} · Area: {fmt(dArea)} m²</strong>
                             {doorsList.length > 1 && (
                               <button
                                 type="button"
@@ -2288,7 +2311,6 @@ export default function App() {
                                 value={door.width}
                                 onChange={(e) => updateDoor(door.id, 'width', Number(e.target.value))}
                               />
-                              <div className="unit">e.g. 1.0 m or 0.9 m</div>
                             </div>
                             <div className="field">
                               <label>Door Height (meters)</label>
@@ -2299,35 +2321,32 @@ export default function App() {
                                 value={door.height}
                                 onChange={(e) => updateDoor(door.id, 'height', Number(e.target.value))}
                               />
-                              <div className="unit">e.g. 2.1 m (7 ft)</div>
                             </div>
                           </div>
                         </div>
                       );
                     })}
                   </div>
-
                   <button type="button" className="add" onClick={addDoor}>
                     ＋ Add Another Door Type
                   </button>
                 </div>
 
-                {/* 2. SEPARATE WINDOWS SECTION */}
-                <div className="column-type" style={{ marginTop: '18px', borderLeft: '4px solid #22b8cf' }}>
+                {/* Windows List */}
+                <div className="column-type" style={{ marginTop: '16px', borderLeft: '4px solid #22b8cf' }}>
                   <div className="column-type-head">
                     <div>
-                      <strong style={{ fontSize: '16px', color: '#097180' }}>🪟 Window Openings Configuration</strong>
-                      <div className="unit">Define different window sizes (Large hall windows, Bedroom windows, Kitchen windows) in meters.</div>
+                      <strong style={{ fontSize: '15px', color: '#097180' }}>🪟 Window Openings</strong>
+                      <div className="unit">Living hall, bedroom, and kitchen windows.</div>
                     </div>
                   </div>
-
                   <div id="windowsList">
                     {windowsList.map((win, index) => {
                       const wArea = win.count * win.width * win.height;
                       return (
                         <div key={win.id} className="item" style={{ background: '#fff' }}>
                           <div className="item-head">
-                            <strong>{win.label || `Window ${index + 1}`} · Total Area: {fmt(wArea)} m²</strong>
+                            <strong>{win.label || `Window ${index + 1}`} · Area: {fmt(wArea)} m²</strong>
                             {windowsList.length > 1 && (
                               <button
                                 type="button"
@@ -2365,7 +2384,6 @@ export default function App() {
                                 value={win.width}
                                 onChange={(e) => updateWindow(win.id, 'width', Number(e.target.value))}
                               />
-                              <div className="unit">e.g. 1.2 m or 1.5 m</div>
                             </div>
                             <div className="field">
                               <label>Window Height (meters)</label>
@@ -2376,35 +2394,32 @@ export default function App() {
                                 value={win.height}
                                 onChange={(e) => updateWindow(win.id, 'height', Number(e.target.value))}
                               />
-                              <div className="unit">e.g. 1.2 m (4 ft)</div>
                             </div>
                           </div>
                         </div>
                       );
                     })}
                   </div>
-
                   <button type="button" className="add" onClick={addWindow}>
                     ＋ Add Another Window Type
                   </button>
                 </div>
 
-                {/* 3. SEPARATE VENTILATORS SECTION */}
-                <div className="column-type" style={{ marginTop: '18px', borderLeft: '4px solid #ffc24b' }}>
+                {/* Ventilators List */}
+                <div className="column-type" style={{ marginTop: '16px', borderLeft: '4px solid #ffc24b' }}>
                   <div className="column-type-head">
                     <div>
-                      <strong style={{ fontSize: '16px', color: '#976607' }}>💨 Ventilation Openings Configuration</strong>
-                      <div className="unit">Specify ventilation and exhaust fan openings for bathrooms, kitchen, and utility shafts in meters.</div>
+                      <strong style={{ fontSize: '15px', color: '#976607' }}>💨 Ventilation Openings</strong>
+                      <div className="unit">Bathroom vents, toilet exhaust, and kitchen utility ventilation.</div>
                     </div>
                   </div>
-
                   <div id="ventsList">
                     {ventsList.map((vent, index) => {
                       const vArea = vent.count * vent.width * vent.height;
                       return (
                         <div key={vent.id} className="item" style={{ background: '#fff' }}>
                           <div className="item-head">
-                            <strong>{vent.label || `Ventilator ${index + 1}`} · Total Area: {fmt(vArea)} m²</strong>
+                            <strong>{vent.label || `Ventilator ${index + 1}`} · Area: {fmt(vArea)} m²</strong>
                             {ventsList.length > 1 && (
                               <button
                                 type="button"
@@ -2442,7 +2457,6 @@ export default function App() {
                                 value={vent.width}
                                 onChange={(e) => updateVentilator(vent.id, 'width', Number(e.target.value))}
                               />
-                              <div className="unit">e.g. 0.6 m</div>
                             </div>
                             <div className="field">
                               <label>Ventilator Height (meters)</label>
@@ -2453,35 +2467,140 @@ export default function App() {
                                 value={vent.height}
                                 onChange={(e) => updateVentilator(vent.id, 'height', Number(e.target.value))}
                               />
-                              <div className="unit">e.g. 0.45 m</div>
                             </div>
                           </div>
                         </div>
                       );
                     })}
                   </div>
-
                   <button type="button" className="add" onClick={addVentilator}>
                     ＋ Add Another Ventilator Type
                   </button>
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(5)}>
-                    ← Back: Walls & Rooms
+                  <button type="button" className="btn secondary" onClick={() => go(4)}>
+                    ← Back: Slab
                   </button>
-                  <button type="button" className="btn primary" onClick={() => go(7)}>
-                    Next: Finishing & Tiles →
+                  <button type="button" className="btn primary" onClick={() => go(6)}>
+                    Next: Plaster →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 7: Finishing, Tiles, Electrical & Plumbing */}
+            {/* Step 6: 7. Plaster */}
+            {currentStep === 6 && (
+              <section className="page" data-page="6">
+                <h2>7. Plaster</h2>
+                <p className="sub">
+                  Accurate internal and external wall plaster area calculation using the IS Civil Engineering formula, deducting all doors, windows, and ventilation openings.
+                </p>
+
+                {/* Dedicated Plaster Area Formula Calculation Card */}
+                <div
+                  className="column-type"
+                  style={{
+                    background: '#f0fdf4',
+                    border: '1.5px solid #86efac',
+                    padding: '18px',
+                    borderRadius: '10px',
+                    marginBottom: '18px',
+                  }}
+                >
+                  <div className="column-type-head" style={{ marginBottom: '10px' }}>
+                    <div>
+                      <strong style={{ fontSize: '16px', color: '#166534' }}>
+                        📐 Plaster Area Formula Calculation (IS Standard)
+                      </strong>
+                      <div style={{ fontSize: '13px', color: '#15803d', marginTop: '6px', fontWeight: 600 }}>
+                        Formula: 2 × WALL Length × WALL Height × Floors = QUANTITY − DEDUCTION OF DOOR, WINDOW, VENTILATION AREA = PLASTER AREA
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                      gap: '14px',
+                      marginTop: '10px',
+                      background: '#ffffff',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      border: '1px solid #bbf7d0',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
+                        Gross Plaster Quantity (2 × L × H × Floors)
+                      </div>
+                      <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', marginTop: '4px' }}>
+                        2 × {wallLength || 0}m × {wallHeight || 0}m × {liveFloors} = <span style={{ color: '#2563eb' }}>{fmt(liveGrossPlasterQty)} m²</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
+                        Openings Deduction (Doors + Windows + Vents)
+                      </div>
+                      <div style={{ fontSize: '15px', fontWeight: 700, color: '#dc2626', marginTop: '4px' }}>
+                        - {fmt(totalDoorArea)} (D) - {fmt(totalWindowArea)} (W) - {fmt(totalVentArea)} (V) = - {fmt(totalOpeningsArea)} m²
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
+                        Net Plaster Area (Calculated)
+                      </div>
+                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#16a34a', marginTop: '4px' }}>
+                        {fmt(liveNetPlasterArea)} sq.m (m²)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid">
+                  <div className="field">
+                    <label>Plaster Thickness (mm)</label>
+                    <input
+                      id="plasterThick"
+                      type="number"
+                      min={0}
+                      value={plasterThick}
+                      onChange={(e) => setPlasterThick(Number(e.target.value))}
+                    />
+                    <div className="unit">Standard: 12 mm internal / 15-20 mm external</div>
+                  </div>
+                  <div className="field">
+                    <label>Paint Application Coats</label>
+                    <input
+                      id="paintCoats"
+                      type="number"
+                      min={0}
+                      value={paintCoats}
+                      onChange={(e) => setPaintCoats(Number(e.target.value))}
+                    />
+                    <div className="unit">Standard: 2 coats primer & emulsion paint</div>
+                  </div>
+                </div>
+
+                <div className="actions">
+                  <button type="button" className="btn secondary" onClick={() => go(5)}>
+                    ← Back: Brick Work
+                  </button>
+                  <button type="button" className="btn primary" onClick={() => go(7)}>
+                    Next: Tiles & Finishing →
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {/* Step 7: 8. Tiles & Finishing */}
             {currentStep === 7 && (
               <section className="page" data-page="7">
-                <h2>Finishing, Tiles & Services</h2>
-                <p className="sub">Enter floor tiles, wall dado tiles, plastering, paint coats, and MEP specifications.</p>
+                <h2>8. Tiles & Finishing</h2>
+                <p className="sub">
+                  Configure floor tiles, wall dado tiles, electrical points, plumbing fixtures, and waterproofing.
+                </p>
+
                 <div className="grid">
                   <div className="field">
                     <label>Floor Tiles Area (sq.m; 0 = auto from slab area)</label>
@@ -2508,81 +2627,9 @@ export default function App() {
                     <div className="unit">Glazed ceramic wall tiles up to 7ft height</div>
                   </div>
                   <div className="field full" style={{ gridColumn: '1 / -1' }}>
-                    <div
-                      className="column-type"
-                      style={{
-                        background: '#f0fdf4',
-                        border: '1.5px solid #86efac',
-                        padding: '16px',
-                        borderRadius: '10px',
-                        marginBottom: '10px',
-                      }}
-                    >
-                      <div className="column-type-head" style={{ marginBottom: '8px' }}>
-                        <div>
-                          <strong style={{ fontSize: '15px', color: '#166534' }}>
-                            📐 Plaster Area Formula Calculation (IS Civil Engineering Standard)
-                          </strong>
-                          <div style={{ fontSize: '13px', color: '#15803d', marginTop: '4px', fontWeight: 600 }}>
-                            Formula: 2 × WALL Length × WALL Height × Floors = QUANTITY − DEDUCTION OF DOOR, WINDOW, VENTILATION AREA = PLASTER AREA
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-                          gap: '12px',
-                          marginTop: '10px',
-                          background: '#ffffff',
-                          padding: '12px',
-                          borderRadius: '8px',
-                          border: '1px solid #bbf7d0',
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Gross Plaster Quantity (2 × L × H × Floors)</div>
-                          <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                            2 × {wallLength || 0}m × {wallHeight || 0}m × {liveFloors} = <span style={{ color: '#2563eb' }}>{fmt(liveGrossPlasterQty)} m²</span>
-                          </div>
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Openings Deduction (Doors + Windows + Vents)</div>
-                          <div style={{ fontSize: '15px', fontWeight: 700, color: '#dc2626' }}>
-                            - {fmt(totalDoorArea)} (D) - {fmt(totalWindowArea)} (W) - {fmt(totalVentArea)} (V) = - {fmt(totalOpeningsArea)} m²
-                          </div>
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Net Plaster Area (Calculated)</div>
-                          <div style={{ fontSize: '17px', fontWeight: 800, color: '#16a34a' }}>
-                            {fmt(liveNetPlasterArea)} sq.m (m²)
-                          </div>
-                        </div>
-                      </div>
+                    <div className="live-badge" style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0369a1' }}>
+                      <span>Tiles Cement Bedding & Neat Cement Slurry is fully integrated into the 8-component Cement Breakdown!</span>
                     </div>
-                  </div>
-
-                  <div className="field">
-                    <label>Plaster Thickness (mm)</label>
-                    <input
-                      id="plasterThick"
-                      type="number"
-                      min={0}
-                      value={plasterThick}
-                      onChange={(e) => setPlasterThick(Number(e.target.value))}
-                    />
-                    <div className="unit">Standard: 12 mm or 15 mm</div>
-                  </div>
-                  <div className="field">
-                    <label>Paint Application Coats</label>
-                    <input
-                      id="paintCoats"
-                      type="number"
-                      min={0}
-                      value={paintCoats}
-                      onChange={(e) => setPaintCoats(Number(e.target.value))}
-                    />
-                    <div className="unit">Standard: 2 coats primer & emulsion</div>
                   </div>
                   <div className="field">
                     <label>Electrical Points (Nos.)</label>
@@ -2593,6 +2640,7 @@ export default function App() {
                       value={electricalPoints}
                       onChange={(e) => setElectricalPoints(Number(e.target.value))}
                     />
+                    <div className="unit">Switches, lights, fans & power plugs</div>
                   </div>
                   <div className="field">
                     <label>Plumbing Fixtures (taps, WC, basins etc.)</label>
@@ -2603,6 +2651,7 @@ export default function App() {
                       value={plumbingFixtures}
                       onChange={(e) => setPlumbingFixtures(Number(e.target.value))}
                     />
+                    <div className="unit">Taps, showers, water closets & sinks</div>
                   </div>
                   <div className="field">
                     <label>Waterproofing Area (sq. meters / m²)</label>
@@ -2614,24 +2663,25 @@ export default function App() {
                       value={waterproofArea}
                       onChange={(e) => setWaterproofArea(Number(e.target.value))}
                     />
-                    <div className="unit">Roof slab, toilets, and sunken slabs</div>
+                    <div className="unit">Roof slab terrace, bathrooms & sunken slabs</div>
                   </div>
                 </div>
+
                 <div className="actions">
                   <button type="button" className="btn secondary" onClick={() => go(6)}>
-                    ← Back: Openings
+                    ← Back: Plaster
                   </button>
                   <button type="button" className="btn primary" onClick={() => go(8)}>
-                    Next: Rates →
+                    Next: Rates & BOQ →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 8: Material & Labour Rates */}
+            {/* Step 8: 9. Rates & BOQ */}
             {currentStep === 8 && (
               <section className="page" data-page="8">
-                <h2>Material & Labour Rates (Metric Units)</h2>
+                <h2>9. Rates & BOQ</h2>
                 <p className="sub">
                   Market rates in Indian Rupees (₹) for all newly configured items including Tiles, Doors, Windows, Ventilators, and Slab Formwork.
                 </p>
@@ -2886,7 +2936,7 @@ export default function App() {
 
                 <div className="actions">
                   <button type="button" className="btn secondary" onClick={() => go(7)}>
-                    ← Back: Finishing & Tiles
+                    ← Back: Tiles & Finishing
                   </button>
                   <button type="button" className="btn primary" onClick={handleCalculate}>
                     Calculate Complete Estimate
