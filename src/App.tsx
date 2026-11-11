@@ -98,8 +98,8 @@ export default function App() {
   const [regError, setRegError] = useState<string>('');
   const [regSuccess, setRegSuccess] = useState<string>('');
 
-  // Stepper state (0 to 10)
-  // 0: 1. Project, 1: 2. Excavation, 2: 3. Footing, 3: 4. Columns, 4: 5. Plinth Beam, 5: 6. Slab Beam, 6: 7. Slab, 7: 8. Brick Work, 8: 9. Plaster, 9: 10. Tiles & Finishing, 10: 11. Rates & BOQ
+  // Stepper state (0 to 11)
+  // 0: 1. Project, 1: 2. Excavation, 2: 3. Footing, 3: 4. Columns, 4: 5. Plinth Beam, 5: 6. Door, Window, Ventilator, 6: 7. Slab Beam, 7: 8. Slab, 8: 9. Brick Work, 9: 10. Plaster, 10: 11. Tiles & Finishing, 11: 12. Rates & BOQ
   const [currentStep, setCurrentStep] = useState<number>(0);
 
   // Step 1: Project Details (Metric)
@@ -304,6 +304,7 @@ export default function App() {
       totalBagsBeforeWastage: number;
     };
     totalCoreMaterialsCost: number;
+    totalMaterialCost: number;
     totalLabourCost: number;
     labourBreakdown: {
       civilLabour: number;
@@ -899,14 +900,6 @@ export default function App() {
     const steelTotal = steelKg * wastageMultiplier; // kg
     const brickTotal = bricks * wastageMultiplier; // pieces
 
-    // LABOUR CHARGES BREAKDOWN
-    const civilLabourCost = totalBuiltArea * (Number(labourRate) || 0);
-    const shutteringLabourCost = slabFormwork * (Number(shutteringRate) || 0);
-    const excavationLabourCost = excavation * (Number(excRate) || 0);
-    const plasterLabourCost = plasterArea * (Number(plasterRate) || 0);
-    const paintLabourCost = paintArea * (Number(paintRate) || 0);
-    const totalLabourCost = civilLabourCost + shutteringLabourCost + excavationLabourCost + plasterLabourCost + paintLabourCost;
-
     // CORE MATERIALS COST BREAKDOWN
     const cementMaterialCost = cementTotalBags * (Number(cementRate) || 0);
     const sandMaterialCost = sandTotal * (Number(sandRate) || 0);
@@ -915,6 +908,47 @@ export default function App() {
     const brickMaterialCost = brickTotal * (Number(brickRate) || 0);
     const totalCoreMaterialsCost = cementMaterialCost + sandMaterialCost + aggMaterialCost + steelMaterialCost + brickMaterialCost;
 
+    // OPENINGS & FINISHES MATERIALS COST
+    const doorsMaterialCost = totalDoorCount * (Number(doorRate) || 0);
+    const windowsMaterialCost = totalWindowCount * (Number(windowRate) || 0);
+    const ventsMaterialCost = totalVentCount * (Number(ventRate) || 0);
+    const floorTilesMaterialCost = customFloorArea * (Number(floorRate) || 0);
+    const wallTilesMaterialCost = customWallTilesArea * (Number(wallTilesRate) || 0);
+    const plasterMaterialCost = plasterArea * (Number(plasterRate) || 0);
+    const paintMaterialCost = paintArea * (Number(paintRate) || 0);
+    const electricalCost = (Number(electricalPoints) || 0) * (Number(electricalRate) || 0);
+    const plumbingCost = (Number(plumbingFixtures) || 0) * (Number(plumbingRate) || 0);
+    const waterproofCost = (Number(waterproofArea) || 0) * (Number(waterproofRate) || 0);
+    const formworkCost = slabFormwork * (Number(shutteringRate) || 0);
+    const excavationCost = excavation * (Number(excRate) || 0);
+    const miscCost = Number(miscRate) || 0;
+
+    // TOTAL MATERIAL COST ACROSS ALL CIVIL COMPONENTS
+    const totalMaterialCost =
+      totalCoreMaterialsCost +
+      doorsMaterialCost +
+      windowsMaterialCost +
+      ventsMaterialCost +
+      floorTilesMaterialCost +
+      wallTilesMaterialCost +
+      plasterMaterialCost +
+      paintMaterialCost +
+      formworkCost +
+      excavationCost +
+      electricalCost +
+      plumbingCost +
+      waterproofCost +
+      miscCost;
+
+    // LABOUR CHARGES: STRICTLY 35% OF TOTAL MATERIAL COST
+    // As per user specification: "es website me laboure charge ko 35% hi add kere"
+    const totalLabourCost = totalMaterialCost * 0.35;
+    const civilLabourCost = totalLabourCost * 0.45;
+    const shutteringLabourCost = totalLabourCost * 0.25;
+    const plasterLabourCost = totalLabourCost * 0.15;
+    const paintLabourCost = totalLabourCost * 0.08;
+    const excavationLabourCost = totalLabourCost * 0.07;
+
     // BOQ Item list in Metric Units with all option rates included
     const items: [string, number, string, number][] = [
       ['Cement (8 Components: Footing+Col+Plinth+SlabBeam+Slab+Brick+Plaster+Tiles)', cementTotalBags, 'bags (50kg)', Number(cementRate) || 0],
@@ -922,20 +956,20 @@ export default function App() {
       ['Aggregate / Coarse Gravel (Footings, Columns, Beams & Slabs)', aggTotal, 'cu.m (m³)', Number(aggRate) || 0],
       ['Reinforcement Steel (TMT Rebars)', steelTotal, 'kg', Number(steelRate) || 0],
       ['Bricks (Red Clay / Fly-ash bricks)', brickTotal, 'pieces', Number(brickRate) || 0],
-      ['Excavation & Earthwork Labour', excavation, 'cu.m (m³)', Number(excRate) || 0],
+      ['Excavation & Earthwork (Equipment/Trench)', excavation, 'cu.m (m³)', Number(excRate) || 0],
       ['Slab & Slab Beam Formwork (Shuttering & Scaffolding)', slabFormwork, 'sq.m', Number(shutteringRate) || 0],
-      ['Structural Construction Labour (Civil & Masonry)', totalBuiltArea, 'sq.m', Number(labourRate) || 0],
       ['Doors (Frames, Shutters & Fitting)', totalDoorCount, 'doors', Number(doorRate) || 0],
       ['Windows (Frames, Glass & Safety Grills)', totalWindowCount, 'windows', Number(windowRate) || 0],
       ['Ventilators (Louvers, Glass & Exhaust Prov.)', totalVentCount, 'ventilators', Number(ventRate) || 0],
       ['Floor Tiles & Flooring (Vitrified/Ceramic + Laying)', customFloorArea, 'sq.m', Number(floorRate) || 0],
       ['Wall Dado Tiles (Bathrooms & Kitchens)', customWallTilesArea, 'sq.m', Number(wallTilesRate) || 0],
-      ['Plastering (2 × Wall Length × Wall Height - Openings Deduction)', plasterArea, 'sq.m', Number(plasterRate) || 0],
+      ['Plastering Mortar (2 × Wall Length × Wall Height − Openings)', plasterArea, 'sq.m', Number(plasterRate) || 0],
       ['Painting (coat-area)', paintArea, 'sq.m', Number(paintRate) || 0],
       ['Electrical Points', Number(electricalPoints) || 0, 'points', Number(electricalRate) || 0],
       ['Plumbing Fixtures', Number(plumbingFixtures) || 0, 'fixtures', Number(plumbingRate) || 0],
       ['Waterproofing', Number(waterproofArea) || 0, 'sq.m', Number(waterproofRate) || 0],
       ['Miscellaneous / Site Expenses', 1, 'lump sum', Number(miscRate) || 0],
+      ['Labour Charges (Fixed @ 35% of Total Material Cost)', 1, 'job (35%)', totalLabourCost],
     ];
 
     let subtotal = 0;
@@ -993,6 +1027,7 @@ export default function App() {
         totalBagsBeforeWastage: rawCementBagsSum,
       },
       totalCoreMaterialsCost,
+      totalMaterialCost,
       totalLabourCost,
       labourBreakdown: {
         civilLabour: civilLabourCost,
@@ -1019,140 +1054,197 @@ export default function App() {
     }, 100);
   };
 
-  // If not logged in, show Auth Gate
+  // If not logged in, show Auth Gate (50-50 split: building photo on left, login/password on right)
   if (!isLoggedIn) {
     return (
       <section id="authGate">
         <div className="auth-shell">
-          <div className="auth-top">
-            <h1>
-              🏢 BuildCost <span style={{ color: '#ffc24b' }}>Pro</span>
-            </h1>
-            <p>Building Construction Cost Estimator (Metric Units)</p>
+          {/* LEFT HALF (50%): BUILDING PHOTO & ARCHITECTURAL HIGHLIGHTS */}
+          <div className="auth-photo-side">
+            <div className="auth-photo-overlay">
+              <div className="auth-photo-brand">
+                <span className="auth-badge">CIVIL ESTIMATOR SUITE</span>
+                <h2>
+                  🏢 BuildCost <span style={{ color: '#ffc24b' }}>Pro</span>
+                </h2>
+                <p>Professional Metric Construction Cost & BOQ Estimator</p>
+              </div>
+
+              <div className="auth-photo-features">
+                <div className="auth-feat-item">
+                  <span className="auth-feat-icon">⚡</span>
+                  <div>
+                    <strong>35% Labour Charge Norm</strong>
+                    <p>Automated 35% workforce charge on material cost</p>
+                  </div>
+                </div>
+                <div className="auth-feat-item">
+                  <span className="auth-feat-icon">🚪</span>
+                  <div>
+                    <strong>6. Door, Window & Ventilator</strong>
+                    <p>Dedicated opening deductions for walls and plaster</p>
+                  </div>
+                </div>
+                <div className="auth-feat-item">
+                  <span className="auth-feat-icon">🧱</span>
+                  <div>
+                    <strong>8-Component Cement Breakdown</strong>
+                    <p>Footings, Columns, Beams, Slabs, Walls, Plaster & Tiles</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="auth-photo-footer">
+                <span>📐 IS Standard Civil Volumetric Formulas · Metric Units (m, m², m³, kg)</span>
+              </div>
+            </div>
           </div>
-          <div className="auth-tabs">
-            <button
-              id="loginTab"
-              className={authTab === 'login' ? 'active' : ''}
-              type="button"
-              onClick={() => setAuthTab('login')}
-            >
-              Login
-            </button>
-            <button
-              id="registerTab"
-              className={authTab === 'register' ? 'active' : ''}
-              type="button"
-              onClick={() => setAuthTab('register')}
-            >
-              Create New Account
-            </button>
-          </div>
-          <div className="auth-content">
-            {authTab === 'login' ? (
-              <form className="auth-pane" id="loginForm" onSubmit={handleLogin}>
-                <h2>User Login</h2>
-                {loginError && (
-                  <div className="auth-error" style={{ display: 'block' }}>
-                    {loginError}
+
+          {/* RIGHT HALF (50%): LOGIN / PASSWORD FORM */}
+          <div className="auth-form-side">
+            <div className="auth-tabs">
+              <button
+                id="loginTab"
+                className={authTab === 'login' ? 'active' : ''}
+                type="button"
+                onClick={() => setAuthTab('login')}
+              >
+                Login
+              </button>
+              <button
+                id="registerTab"
+                className={authTab === 'register' ? 'active' : ''}
+                type="button"
+                onClick={() => setAuthTab('register')}
+              >
+                Create New Account
+              </button>
+            </div>
+
+            <div className="auth-form-body">
+              {authTab === 'login' ? (
+                <form className="auth-pane" id="loginForm" onSubmit={handleLogin}>
+                  {/* Photo right above login and password */}
+                  <div className="auth-form-top-photo">
+                    <img
+                      src="/assets/aistudio/WhatsApp_Image_2026-11-11_at_5.11.49_PM_e4404fb9.jpeg"
+                      alt="5 BHK Residential Villa Project"
+                    />
+                    <div className="auth-form-photo-tag">🏡 5 BHK Luxury Villa Project</div>
                   </div>
-                )}
-                <div className="auth-field">
-                  <label>Email Address</label>
-                  <input
-                    id="loginEmail"
-                    type="email"
-                    required
-                    placeholder="Enter your email address"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                  />
-                </div>
-                <div className="auth-field">
-                  <label>Password</label>
-                  <input
-                    id="loginPassword"
-                    type="password"
-                    required
-                    minLength={6}
-                    placeholder="Enter password"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                  />
-                </div>
-                <button className="auth-submit" type="submit">
-                  Login & Open Estimator →
-                </button>
-                <p className="auth-help">
-                  New user? Click 'Create New Account' first, then log in using your registered credentials.
-                </p>
-              </form>
-            ) : (
-              <form className="auth-pane" id="registerForm" onSubmit={handleRegister}>
-                <h2>Create New Account</h2>
-                {regError && (
-                  <div className="auth-error" style={{ display: 'block' }}>
-                    {regError}
+
+                  <h2>User Login</h2>
+                  {loginError && (
+                    <div className="auth-error" style={{ display: 'block' }}>
+                      {loginError}
+                    </div>
+                  )}
+                  <div className="auth-field">
+                    <label>Email Address</label>
+                    <input
+                      id="loginEmail"
+                      type="email"
+                      required
+                      placeholder="Enter your email address"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                    />
                   </div>
-                )}
-                {regSuccess && (
-                  <div className="auth-success" style={{ display: 'block' }}>
-                    {regSuccess}
+                  <div className="auth-field">
+                    <label>Password</label>
+                    <input
+                      id="loginPassword"
+                      type="password"
+                      required
+                      minLength={6}
+                      placeholder="Enter password"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                    />
                   </div>
-                )}
-                <div className="auth-field">
-                  <label>Full Name</label>
-                  <input
-                    id="regName"
-                    required
-                    placeholder="Enter your full name"
-                    value={regName}
-                    onChange={(e) => setRegName(e.target.value)}
-                  />
-                </div>
-                <div className="auth-field">
-                  <label>Email Address</label>
-                  <input
-                    id="regEmail"
-                    type="email"
-                    required
-                    placeholder="Enter your email address"
-                    value={regEmail}
-                    onChange={(e) => setRegEmail(e.target.value)}
-                  />
-                </div>
-                <div className="auth-field">
-                  <label>Password (minimum 6 characters)</label>
-                  <input
-                    id="regPassword"
-                    type="password"
-                    required
-                    minLength={6}
-                    placeholder="Create a password"
-                    value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
-                  />
-                </div>
-                <div className="auth-field">
-                  <label>Confirm Password</label>
-                  <input
-                    id="regConfirm"
-                    type="password"
-                    required
-                    minLength={6}
-                    placeholder="Confirm your password"
-                    value={regConfirm}
-                    onChange={(e) => setRegConfirm(e.target.value)}
-                  />
-                </div>
-                <button className="auth-submit register" type="submit">
-                  Create Account / Register
-                </button>
-                <p className="auth-help">
-                  Account details are safely preserved in browser storage for instant session access.
-                </p>
-              </form>
-            )}
+                  <button className="auth-submit" type="submit">
+                    Login & Open Estimator →
+                  </button>
+                  <p className="auth-help">
+                    New user? Click 'Create New Account' first, then log in using your registered credentials.
+                  </p>
+                </form>
+              ) : (
+                <form className="auth-pane" id="registerForm" onSubmit={handleRegister}>
+                  {/* Photo right above registration */}
+                  <div className="auth-form-top-photo">
+                    <img
+                      src="/assets/aistudio/WhatsApp_Image_2026-11-11_at_5.11.49_PM_e4404fb9.jpeg"
+                      alt="5 BHK Residential Villa Project"
+                    />
+                    <div className="auth-form-photo-tag">🏡 5 BHK Luxury Villa Project</div>
+                  </div>
+
+                  <h2>Create New Account</h2>
+                  {regError && (
+                    <div className="auth-error" style={{ display: 'block' }}>
+                      {regError}
+                    </div>
+                  )}
+                  {regSuccess && (
+                    <div className="auth-success" style={{ display: 'block' }}>
+                      {regSuccess}
+                    </div>
+                  )}
+                  <div className="auth-field">
+                    <label>Full Name</label>
+                    <input
+                      id="regName"
+                      required
+                      placeholder="Enter your full name"
+                      value={regName}
+                      onChange={(e) => setRegName(e.target.value)}
+                    />
+                  </div>
+                  <div className="auth-field">
+                    <label>Email Address</label>
+                    <input
+                      id="regEmail"
+                      type="email"
+                      required
+                      placeholder="Enter your email address"
+                      value={regEmail}
+                      onChange={(e) => setRegEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="auth-field">
+                    <label>Password (minimum 6 characters)</label>
+                    <input
+                      id="regPassword"
+                      type="password"
+                      required
+                      minLength={6}
+                      placeholder="Create a password"
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="auth-field">
+                    <label>Confirm Password</label>
+                    <input
+                      id="regConfirm"
+                      type="password"
+                      required
+                      minLength={6}
+                      placeholder="Confirm your password"
+                      value={regConfirm}
+                      onChange={(e) => setRegConfirm(e.target.value)}
+                    />
+                  </div>
+                  <button className="auth-submit register" type="submit">
+                    Create Account / Register
+                  </button>
+                  <p className="auth-help">
+                    Account details are safely preserved in browser storage for instant session access.
+                  </p>
+                </form>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -1217,37 +1309,43 @@ export default function App() {
               className={`step ${currentStep === 5 ? 'active' : currentStep > 5 ? 'done' : ''}`}
               onClick={() => go(5)}
             >
-              6. Slab Beam
+              6. Door, Window, Ventilator
             </div>
             <div
               className={`step ${currentStep === 6 ? 'active' : currentStep > 6 ? 'done' : ''}`}
               onClick={() => go(6)}
             >
-              7. Slab
+              7. Slab Beam
             </div>
             <div
               className={`step ${currentStep === 7 ? 'active' : currentStep > 7 ? 'done' : ''}`}
               onClick={() => go(7)}
             >
-              8. Brick Work
+              8. Slab
             </div>
             <div
               className={`step ${currentStep === 8 ? 'active' : currentStep > 8 ? 'done' : ''}`}
               onClick={() => go(8)}
             >
-              9. Plaster
+              9. Brick Work
             </div>
             <div
               className={`step ${currentStep === 9 ? 'active' : currentStep > 9 ? 'done' : ''}`}
               onClick={() => go(9)}
             >
-              10. Tiles & Finishing
+              10. Plaster
             </div>
             <div
-              className={`step ${currentStep === 10 ? 'active' : ''}`}
+              className={`step ${currentStep === 10 ? 'active' : currentStep > 10 ? 'done' : ''}`}
               onClick={() => go(10)}
             >
-              11. Rates & BOQ
+              11. Tiles & Finishing
+            </div>
+            <div
+              className={`step ${currentStep === 11 ? 'active' : ''}`}
+              onClick={() => go(11)}
+            >
+              12. Rates & BOQ
             </div>
           </div>
 
@@ -1819,468 +1917,18 @@ export default function App() {
                     ← Back: Columns
                   </button>
                   <button type="button" className="btn primary" onClick={() => go(5)}>
-                    Next: Slab Beam →
+                    Next: Door, Window, Ventilator →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 5: 6. Slab Beam */}
+            {/* Step 5: 6. Door, Window, Ventilator */}
             {currentStep === 5 && (
               <section className="page" data-page="5">
-                <h2>6. Slab Beam</h2>
+                <h2>6. Door, Window, Ventilator</h2>
                 <p className="sub">
-                  Configure dedicated Slab Beam (floor and roof level beams) running length, cross-section dimensions, and concrete mix ratio.
-                </p>
-
-                <div className="field full" style={{ marginBottom: '14px' }}>
-                  <div className="live-badge" style={{ background: '#e0f2fe', borderColor: '#7dd3fc', color: '#0369a1' }}>
-                    <span>Slab Beam Running Length: <strong>{fmt(Number(beamLength) || 0)} m</strong></span>
-                    <span style={{ margin: '0 8px' }}>|</span>
-                    <span>Cross-Section: <strong>{Number(beamW) || 0}m × {Number(beamD) || 0}m</strong></span>
-                    <span style={{ margin: '0 8px' }}>|</span>
-                    <span>Slab Beam Concrete: <strong>{fmt(totalSlabBeamVolume)} cu.m (m³)</strong></span>
-                  </div>
-                </div>
-
-                <div className="column-type" style={{ background: '#f8fbfe', border: '1px solid #bde0f5' }}>
-                  <div className="column-type-head">
-                    <div>
-                      <strong style={{ fontSize: '16px', color: '#153d5c' }}>📐 Floor & Roof Slab Beams Sizing</strong>
-                      <div className="unit">Beams supporting slabs at each floor and roof level.</div>
-                    </div>
-                  </div>
-
-                  <div className="grid">
-                    <div className="field">
-                      <label>Total Slab Beam Length (running meters)</label>
-                      <input
-                        id="beamLength"
-                        type="number"
-                        min={0}
-                        step=".5"
-                        value={beamLength}
-                        onChange={(e) => setBeamLength(Number(e.target.value))}
-                      />
-                      <div className="unit">Floor + roof level beams length across all floors</div>
-                    </div>
-                    <div className="field">
-                      <label>Slab Beam Width (meters)</label>
-                      <input
-                        id="beamW"
-                        type="number"
-                        min={0}
-                        step=".01"
-                        value={beamW}
-                        onChange={(e) => setBeamW(Number(e.target.value))}
-                      />
-                      <div className="unit">e.g. 0.23 m (230 mm / 9")</div>
-                    </div>
-                    <div className="field">
-                      <label>Slab Beam Depth (meters)</label>
-                      <input
-                        id="beamD"
-                        type="number"
-                        min={0}
-                        step=".01"
-                        value={beamD}
-                        onChange={(e) => setBeamD(Number(e.target.value))}
-                      />
-                      <div className="unit">e.g. 0.30 m (300 mm / 12")</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Concrete Mix Ratio for Beams */}
-                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '16px' }}>
-                  Concrete Mix Ratio (Cement : Sand : Aggregate)
-                </h3>
-                <div className="grid">
-                  <div className="field">
-                    <label>Cement Part</label>
-                    <input
-                      id="mixC"
-                      type="number"
-                      min={0.1}
-                      step=".1"
-                      value={mixC}
-                      onChange={(e) => setMixC(Number(e.target.value))}
-                    />
-                    <div className="unit">e.g. 1 for M20 (1:1.5:3) or M15 (1:2:4)</div>
-                  </div>
-                  <div className="field">
-                    <label>Sand Part</label>
-                    <input
-                      id="mixS"
-                      type="number"
-                      min={0}
-                      step=".1"
-                      value={mixS}
-                      onChange={(e) => setMixS(Number(e.target.value))}
-                    />
-                    <div className="unit">e.g. 1.5 for M20</div>
-                  </div>
-                  <div className="field">
-                    <label>Aggregate Part</label>
-                    <input
-                      id="mixA"
-                      type="number"
-                      min={0}
-                      step=".1"
-                      value={mixA}
-                      onChange={(e) => setMixA(Number(e.target.value))}
-                    />
-                    <div className="unit">e.g. 3.0 for M20</div>
-                  </div>
-                </div>
-
-                <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(4)}>
-                    ← Back: Plinth Beam
-                  </button>
-                  <button type="button" className="btn primary" onClick={() => go(6)}>
-                    Next: Slab →
-                  </button>
-                </div>
-              </section>
-            )}
-
-            {/* Step 6: 7. Slab */}
-            {currentStep === 6 && (
-              <section className="page" data-page="6">
-                <h2>7. Slab</h2>
-                <p className="sub">
-                  Configure roof & floor slab panels, dimensions (Length, Width, Thickness), and steel reinforcement consumption.
-                </p>
-
-                <div className="column-type" style={{ background: '#fdfefe', border: '1px solid #c7d2fe' }}>
-                  <div className="column-type-head">
-                    <div>
-                      <strong style={{ fontSize: '16px', color: '#312e81' }}>🏛️ Slab Option (Roof & Floor Slab Panels)</strong>
-                      <div className="unit">Configure exact Length, Width, and Thickness for all floor & roof slab panels.</div>
-                    </div>
-                    <button
-                      type="button"
-                      className="btn secondary"
-                      style={{ padding: '6px 12px', fontSize: '12px' }}
-                      onClick={autoFillSlabFromArea}
-                    >
-                      ⚡ Auto-Fill Slab from Built-up Area
-                    </button>
-                  </div>
-
-                  <div className="field full">
-                    <div className="live-badge" style={{ background: '#eef2ff', borderColor: '#c7d2fe', color: '#3730a3' }}>
-                      <span>Total Slab Area: <strong>{fmt(totalSlabArea)} m²</strong></span>
-                      <span style={{ margin: '0 8px' }}>|</span>
-                      <span>Total Slab Concrete Volume: <strong>{fmt(totalSlabVolume)} cu.m (m³)</strong></span>
-                    </div>
-                  </div>
-
-                  <div id="slabPanels" style={{ marginTop: '12px' }}>
-                    {slabs.map((slabItem, index) => {
-                      const panelArea = slabItem.count * slabItem.length * slabItem.width;
-                      const panelVol = panelArea * slabItem.thickness;
-                      return (
-                        <div
-                          key={slabItem.id}
-                          className="item"
-                          style={{ background: '#fff', border: '1px solid #d4e6f4' }}
-                        >
-                          <div className="item-head">
-                            <strong>
-                              {slabItem.label || `Slab Panel ${index + 1}`} · Area: {fmt(panelArea)} m² · Volume: {fmt(panelVol)} m³
-                            </strong>
-                            {slabs.length > 1 && (
-                              <button
-                                type="button"
-                                className="remove"
-                                onClick={() => removeSlab(slabItem.id)}
-                              >
-                                Remove Slab
-                              </button>
-                            )}
-                          </div>
-                          <div className="grid">
-                            <div className="field">
-                              <label>Slab Panel Name / Type</label>
-                              <input
-                                type="text"
-                                value={slabItem.label}
-                                onChange={(e) =>
-                                  updateSlab(slabItem.id, 'label', e.target.value)
-                                }
-                              />
-                            </div>
-                            <div className="field">
-                              <label>Number of Floors / Slabs (Qty)</label>
-                              <input
-                                type="number"
-                                min={1}
-                                value={slabItem.count}
-                                onChange={(e) =>
-                                  updateSlab(slabItem.id, 'count', Number(e.target.value))
-                                }
-                              />
-                            </div>
-                            <div className="field">
-                              <label>Slab Length (meters)</label>
-                              <input
-                                type="number"
-                                min={0}
-                                step=".1"
-                                value={slabItem.length}
-                                onChange={(e) =>
-                                  updateSlab(slabItem.id, 'length', Number(e.target.value))
-                                }
-                              />
-                              <div className="unit">e.g. 10.0 m</div>
-                            </div>
-                            <div className="field">
-                              <label>Slab Width (meters)</label>
-                              <input
-                                type="number"
-                                min={0}
-                                step=".1"
-                                value={slabItem.width}
-                                onChange={(e) =>
-                                  updateSlab(slabItem.id, 'width', Number(e.target.value))
-                                }
-                              />
-                              <div className="unit">e.g. 9.5 m</div>
-                            </div>
-                            <div className="field">
-                              <label>Slab Thickness (meters)</label>
-                              <input
-                                type="number"
-                                min={0}
-                                step=".005"
-                                value={slabItem.thickness}
-                                onChange={(e) =>
-                                  updateSlab(slabItem.id, 'thickness', Number(e.target.value))
-                                }
-                              />
-                              <div className="unit">e.g. 0.125 m = 125 mm (5 inches)</div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <button type="button" className="add" onClick={addSlab} style={{ marginTop: '8px' }}>
-                    ＋ Add Another Slab Panel (Balcony, Porch, Canopy etc.)
-                  </button>
-                </div>
-
-                {/* Steel Factor & Misc RCC */}
-                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '16px' }}>
-                  Reinforcement Steel & Misc. RCC Specifications
-                </h3>
-                <div className="grid">
-                  <div className="field">
-                    <label>Steel Consumption (kg / m³ of RCC)</label>
-                    <input
-                      id="steelFactor"
-                      type="number"
-                      min={0}
-                      value={steelFactor}
-                      onChange={(e) => setSteelFactor(Number(e.target.value))}
-                    />
-                    <div className="unit">Standard average: 80 - 130 kg/m³</div>
-                  </div>
-                  <div className="field">
-                    <label>Staircase / Misc. RCC Volume (cu.m / m³)</label>
-                    <input
-                      id="miscRcc"
-                      type="number"
-                      min={0}
-                      step=".1"
-                      value={miscRcc}
-                      onChange={(e) => setMiscRcc(Number(e.target.value))}
-                    />
-                    <div className="unit">Waist slab, steps, lintels & chajjas</div>
-                  </div>
-                </div>
-
-                <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(5)}>
-                    ← Back: Slab Beam
-                  </button>
-                  <button type="button" className="btn primary" onClick={() => go(7)}>
-                    Next: Brick Work →
-                  </button>
-                </div>
-              </section>
-            )}
-
-            {/* Step 7: 8. Brick Work */}
-            {currentStep === 7 && (
-              <section className="page" data-page="7">
-                <h2>8. Brick Work & Openings</h2>
-                <p className="sub">
-                  Configure room measurements, masonry wall dimensions, and dedicated openings (Doors, Windows, and Ventilation).
-                </p>
-
-                {/* Rooms Planner */}
-                <h3 style={{ margin: '14px 0 10px', color: '#153d5c', fontSize: '16px' }}>
-                  Room Configuration Planner
-                </h3>
-                <div id="rooms">
-                  {rooms.map((room, index) => (
-                    <div key={room.id} className="item">
-                      <div className="item-head">
-                        <strong>Room {index + 1}: {room.type}</strong>
-                        <button
-                          type="button"
-                          className="remove"
-                          onClick={() => removeRoom(room.id)}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                      <div className="grid">
-                        <div className="field">
-                          <label>Room Type</label>
-                          <select
-                            className="roomType"
-                            value={room.type}
-                            onChange={(e) => updateRoom(room.id, 'type', e.target.value)}
-                          >
-                            <option value="Bedroom">Bedroom</option>
-                            <option value="Living / Hall">Living / Hall</option>
-                            <option value="Kitchen">Kitchen</option>
-                            <option value="Bathroom">Bathroom</option>
-                            <option value="Toilet">Toilet</option>
-                            <option value="Store">Store</option>
-                            <option value="Balcony">Balcony</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                        <div className="field">
-                          <label>Length (meters)</label>
-                          <input
-                            className="roomL"
-                            type="number"
-                            min={0}
-                            step=".1"
-                            value={room.l}
-                            onChange={(e) => updateRoom(room.id, 'l', Number(e.target.value))}
-                          />
-                        </div>
-                        <div className="field">
-                          <label>Width (meters)</label>
-                          <input
-                            className="roomW"
-                            type="number"
-                            min={0}
-                            step=".1"
-                            value={room.w}
-                            onChange={(e) => updateRoom(room.id, 'w', Number(e.target.value))}
-                          />
-                        </div>
-                        <div className="field">
-                          <label>Number of Rooms</label>
-                          <input
-                            className="roomN"
-                            type="number"
-                            min={0}
-                            value={room.n}
-                            onChange={(e) => updateRoom(room.id, 'n', Number(e.target.value))}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <button type="button" className="add" onClick={addRoom}>
-                  ＋ Add Room
-                </button>
-
-                {/* Wall Dimensions */}
-                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '16px' }}>
-                  Wall Dimensions & Mortar Specification
-                </h3>
-                <div className="grid">
-                  <div className="field">
-                    <label>Total Wall Length (running meters / floor)</label>
-                    <input
-                      id="wallLength"
-                      type="number"
-                      min={0}
-                      step=".5"
-                      value={wallLength}
-                      onChange={(e) => setWallLength(Number(e.target.value))}
-                    />
-                    <div className="unit">External + internal partition walls</div>
-                  </div>
-                  <div className="field">
-                    <label>Wall Height (meters)</label>
-                    <input
-                      id="wallHeight"
-                      type="number"
-                      min={0}
-                      step=".1"
-                      value={wallHeight}
-                      onChange={(e) => setWallHeight(Number(e.target.value))}
-                    />
-                    <div className="unit">Floor-to-ceiling height (e.g. 3.0 m) · Used in Plaster Formula (2 × L × H)</div>
-                  </div>
-                  <div className="field">
-                    <label>Wall Thickness (meters)</label>
-                    <input
-                      id="wallThick"
-                      type="number"
-                      min={0}
-                      step=".01"
-                      value={wallThick}
-                      onChange={(e) => setWallThick(Number(e.target.value))}
-                    />
-                    <div className="unit">e.g. 0.23 m (230 mm / 9") or 0.115 m (4.5")</div>
-                  </div>
-                  <div className="field">
-                    <label>Brickwork Mortar: Cement Part</label>
-                    <input
-                      id="mortarC"
-                      type="number"
-                      min={0.1}
-                      step=".1"
-                      value={mortarC}
-                      onChange={(e) => setMortarC(Number(e.target.value))}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>Brickwork Mortar: Sand Part</label>
-                    <input
-                      id="mortarS"
-                      type="number"
-                      min={0.1}
-                      step=".1"
-                      value={mortarS}
-                      onChange={(e) => setMortarS(Number(e.target.value))}
-                    />
-                    <div className="unit">Standard 1:6 ratio</div>
-                  </div>
-                  <div className="field">
-                    <label>Bricks per cubic meter (cu.m) of brickwork</label>
-                    <input
-                      id="brickFactor"
-                      type="number"
-                      min={1}
-                      value={brickFactor}
-                      onChange={(e) => setBrickFactor(Number(e.target.value))}
-                    />
-                    <div className="unit">Standard metric brick: 500 pcs / m³</div>
-                  </div>
-                </div>
-
-                {/* Dedicated Openings Section */}
-                <h3 style={{ margin: '26px 0 10px', color: '#153d5c', fontSize: '16px' }}>
-                  Openings Configuration (Doors, Windows & Ventilation)
-                </h3>
-                <p className="unit" style={{ marginBottom: '10px' }}>
-                  All opening areas are automatically deducted from brickwork masonry and plaster calculations.
+                  Configure separate dedicated options for Doors, Windows, and Ventilators. All opening areas are automatically deducted from brickwork masonry and plaster calculations.
                 </p>
 
                 <div className="field full">
@@ -2291,7 +1939,7 @@ export default function App() {
                     <span style={{ margin: '0 8px' }}>|</span>
                     <span>💨 Vents: <strong>{fmt(totalVentArea)} m²</strong> ({totalVentCount} pcs)</span>
                     <span style={{ margin: '0 8px' }}>|</span>
-                    <span>Total Deducted: <strong>{fmt(totalOpeningsArea)} m²</strong></span>
+                    <span>Total Deducted Area: <strong>{fmt(totalOpeningsArea)} m²</strong></span>
                   </div>
                 </div>
 
@@ -2300,7 +1948,7 @@ export default function App() {
                   <div className="column-type-head">
                     <div>
                       <strong style={{ fontSize: '15px', color: '#1268a5' }}>🚪 Door Openings</strong>
-                      <div className="unit">Main entrance, bedroom, and toilet doors.</div>
+                      <div className="unit">Main entrance, bedroom, and bathroom/toilet doors.</div>
                     </div>
                   </div>
                   <div id="doorsList">
@@ -2515,20 +2163,490 @@ export default function App() {
                 </div>
 
                 <div className="actions">
+                  <button type="button" className="btn secondary" onClick={() => go(4)}>
+                    ← Back: Plinth Beam
+                  </button>
+                  <button type="button" className="btn primary" onClick={() => go(6)}>
+                    Next: Slab Beam →
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {/* Step 6: 7. Slab Beam */}
+            {currentStep === 6 && (
+              <section className="page" data-page="6">
+                <h2>7. Slab Beam</h2>
+                <p className="sub">
+                  Configure dedicated Slab Beam (floor and roof level beams) running length, cross-section dimensions, and concrete mix ratio.
+                </p>
+
+                <div className="field full" style={{ marginBottom: '14px' }}>
+                  <div className="live-badge" style={{ background: '#e0f2fe', borderColor: '#7dd3fc', color: '#0369a1' }}>
+                    <span>Slab Beam Running Length: <strong>{fmt(Number(beamLength) || 0)} m</strong></span>
+                    <span style={{ margin: '0 8px' }}>|</span>
+                    <span>Cross-Section: <strong>{Number(beamW) || 0}m × {Number(beamD) || 0}m</strong></span>
+                    <span style={{ margin: '0 8px' }}>|</span>
+                    <span>Slab Beam Concrete: <strong>{fmt(totalSlabBeamVolume)} cu.m (m³)</strong></span>
+                  </div>
+                </div>
+
+                <div className="column-type" style={{ background: '#f8fbfe', border: '1px solid #bde0f5' }}>
+                  <div className="column-type-head">
+                    <div>
+                      <strong style={{ fontSize: '16px', color: '#153d5c' }}>📐 Floor & Roof Slab Beams Sizing</strong>
+                      <div className="unit">Beams supporting slabs at each floor and roof level.</div>
+                    </div>
+                  </div>
+
+                  <div className="grid">
+                    <div className="field">
+                      <label>Total Slab Beam Length (running meters)</label>
+                      <input
+                        id="beamLength"
+                        type="number"
+                        min={0}
+                        step=".5"
+                        value={beamLength}
+                        onChange={(e) => setBeamLength(Number(e.target.value))}
+                      />
+                      <div className="unit">Floor + roof level beams length across all floors</div>
+                    </div>
+                    <div className="field">
+                      <label>Slab Beam Width (meters)</label>
+                      <input
+                        id="beamW"
+                        type="number"
+                        min={0}
+                        step=".01"
+                        value={beamW}
+                        onChange={(e) => setBeamW(Number(e.target.value))}
+                      />
+                      <div className="unit">e.g. 0.23 m (230 mm / 9")</div>
+                    </div>
+                    <div className="field">
+                      <label>Slab Beam Depth (meters)</label>
+                      <input
+                        id="beamD"
+                        type="number"
+                        min={0}
+                        step=".01"
+                        value={beamD}
+                        onChange={(e) => setBeamD(Number(e.target.value))}
+                      />
+                      <div className="unit">e.g. 0.30 m (300 mm / 12")</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Concrete Mix Ratio for Beams */}
+                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  Concrete Mix Ratio (Cement : Sand : Aggregate)
+                </h3>
+                <div className="grid">
+                  <div className="field">
+                    <label>Cement Part</label>
+                    <input
+                      id="mixC"
+                      type="number"
+                      min={0.1}
+                      step=".1"
+                      value={mixC}
+                      onChange={(e) => setMixC(Number(e.target.value))}
+                    />
+                    <div className="unit">e.g. 1 for M20 (1:1.5:3) or M15 (1:2:4)</div>
+                  </div>
+                  <div className="field">
+                    <label>Sand Part</label>
+                    <input
+                      id="mixS"
+                      type="number"
+                      min={0}
+                      step=".1"
+                      value={mixS}
+                      onChange={(e) => setMixS(Number(e.target.value))}
+                    />
+                    <div className="unit">e.g. 1.5 for M20</div>
+                  </div>
+                  <div className="field">
+                    <label>Aggregate Part</label>
+                    <input
+                      id="mixA"
+                      type="number"
+                      min={0}
+                      step=".1"
+                      value={mixA}
+                      onChange={(e) => setMixA(Number(e.target.value))}
+                    />
+                    <div className="unit">e.g. 3.0 for M20</div>
+                  </div>
+                </div>
+
+                <div className="actions">
+                  <button type="button" className="btn secondary" onClick={() => go(5)}>
+                    ← Back: Door, Window, Ventilator
+                  </button>
+                  <button type="button" className="btn primary" onClick={() => go(7)}>
+                    Next: Slab →
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {/* Step 7: 8. Slab */}
+            {currentStep === 7 && (
+              <section className="page" data-page="7">
+                <h2>8. Slab</h2>
+                <p className="sub">
+                  Configure roof & floor slab panels, dimensions (Length, Width, Thickness), and steel reinforcement consumption.
+                </p>
+
+                <div className="column-type" style={{ background: '#fdfefe', border: '1px solid #c7d2fe' }}>
+                  <div className="column-type-head">
+                    <div>
+                      <strong style={{ fontSize: '16px', color: '#312e81' }}>🏛️ Slab Option (Roof & Floor Slab Panels)</strong>
+                      <div className="unit">Configure exact Length, Width, and Thickness for all floor & roof slab panels.</div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn secondary"
+                      style={{ padding: '6px 12px', fontSize: '12px' }}
+                      onClick={autoFillSlabFromArea}
+                    >
+                      ⚡ Auto-Fill Slab from Built-up Area
+                    </button>
+                  </div>
+
+                  <div className="field full">
+                    <div className="live-badge" style={{ background: '#eef2ff', borderColor: '#c7d2fe', color: '#3730a3' }}>
+                      <span>Total Slab Area: <strong>{fmt(totalSlabArea)} m²</strong></span>
+                      <span style={{ margin: '0 8px' }}>|</span>
+                      <span>Total Slab Concrete Volume: <strong>{fmt(totalSlabVolume)} cu.m (m³)</strong></span>
+                    </div>
+                  </div>
+
+                  <div id="slabPanels" style={{ marginTop: '12px' }}>
+                    {slabs.map((slabItem, index) => {
+                      const panelArea = slabItem.count * slabItem.length * slabItem.width;
+                      const panelVol = panelArea * slabItem.thickness;
+                      return (
+                        <div
+                          key={slabItem.id}
+                          className="item"
+                          style={{ background: '#fff', border: '1px solid #d4e6f4' }}
+                        >
+                          <div className="item-head">
+                            <strong>
+                              {slabItem.label || `Slab Panel ${index + 1}`} · Area: {fmt(panelArea)} m² · Volume: {fmt(panelVol)} m³
+                            </strong>
+                            {slabs.length > 1 && (
+                              <button
+                                type="button"
+                                className="remove"
+                                onClick={() => removeSlab(slabItem.id)}
+                              >
+                                Remove Slab
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid">
+                            <div className="field">
+                              <label>Slab Panel Name / Type</label>
+                              <input
+                                type="text"
+                                value={slabItem.label}
+                                onChange={(e) =>
+                                  updateSlab(slabItem.id, 'label', e.target.value)
+                                }
+                              />
+                            </div>
+                            <div className="field">
+                              <label>Number of Floors / Slabs (Qty)</label>
+                              <input
+                                type="number"
+                                min={1}
+                                value={slabItem.count}
+                                onChange={(e) =>
+                                  updateSlab(slabItem.id, 'count', Number(e.target.value))
+                                }
+                              />
+                            </div>
+                            <div className="field">
+                              <label>Slab Length (meters)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                step=".1"
+                                value={slabItem.length}
+                                onChange={(e) =>
+                                  updateSlab(slabItem.id, 'length', Number(e.target.value))
+                                }
+                              />
+                              <div className="unit">e.g. 10.0 m</div>
+                            </div>
+                            <div className="field">
+                              <label>Slab Width (meters)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                step=".1"
+                                value={slabItem.width}
+                                onChange={(e) =>
+                                  updateSlab(slabItem.id, 'width', Number(e.target.value))
+                                }
+                              />
+                              <div className="unit">e.g. 9.5 m</div>
+                            </div>
+                            <div className="field">
+                              <label>Slab Thickness (meters)</label>
+                              <input
+                                type="number"
+                                min={0}
+                                step=".005"
+                                value={slabItem.thickness}
+                                onChange={(e) =>
+                                  updateSlab(slabItem.id, 'thickness', Number(e.target.value))
+                                }
+                              />
+                              <div className="unit">e.g. 0.125 m = 125 mm (5 inches)</div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button type="button" className="add" onClick={addSlab} style={{ marginTop: '8px' }}>
+                    ＋ Add Another Slab Panel (Balcony, Porch, Canopy etc.)
+                  </button>
+                </div>
+
+                {/* Steel Factor & Misc RCC */}
+                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  Reinforcement Steel & Misc. RCC Specifications
+                </h3>
+                <div className="grid">
+                  <div className="field">
+                    <label>Steel Consumption (kg / m³ of RCC)</label>
+                    <input
+                      id="steelFactor"
+                      type="number"
+                      min={0}
+                      value={steelFactor}
+                      onChange={(e) => setSteelFactor(Number(e.target.value))}
+                    />
+                    <div className="unit">Standard average: 80 - 130 kg/m³</div>
+                  </div>
+                  <div className="field">
+                    <label>Staircase / Misc. RCC Volume (cu.m / m³)</label>
+                    <input
+                      id="miscRcc"
+                      type="number"
+                      min={0}
+                      step=".1"
+                      value={miscRcc}
+                      onChange={(e) => setMiscRcc(Number(e.target.value))}
+                    />
+                    <div className="unit">Waist slab, steps, lintels & chajjas</div>
+                  </div>
+                </div>
+
+                <div className="actions">
                   <button type="button" className="btn secondary" onClick={() => go(6)}>
-                    ← Back: Slab
+                    ← Back: Slab Beam
                   </button>
                   <button type="button" className="btn primary" onClick={() => go(8)}>
+                    Next: Brick Work →
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {/* Step 8: 9. Brick Work */}
+            {currentStep === 8 && (
+              <section className="page" data-page="8">
+                <h2>9. Brick Work</h2>
+                <p className="sub">
+                  Configure room layout planner and masonry wall dimensions. Openings for Doors, Windows, and Ventilators configured in Step 6 are automatically deducted.
+                </p>
+
+                {/* Rooms Planner */}
+                <h3 style={{ margin: '14px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  Room Configuration Planner
+                </h3>
+                <div id="rooms">
+                  {rooms.map((room, index) => (
+                    <div key={room.id} className="item">
+                      <div className="item-head">
+                        <strong>Room {index + 1}: {room.type}</strong>
+                        <button
+                          type="button"
+                          className="remove"
+                          onClick={() => removeRoom(room.id)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <div className="grid">
+                        <div className="field">
+                          <label>Room Type</label>
+                          <select
+                            className="roomType"
+                            value={room.type}
+                            onChange={(e) => updateRoom(room.id, 'type', e.target.value)}
+                          >
+                            <option value="Bedroom">Bedroom</option>
+                            <option value="Living / Hall">Living / Hall</option>
+                            <option value="Kitchen">Kitchen</option>
+                            <option value="Bathroom">Bathroom</option>
+                            <option value="Toilet">Toilet</option>
+                            <option value="Store">Store</option>
+                            <option value="Balcony">Balcony</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div className="field">
+                          <label>Length (meters)</label>
+                          <input
+                            className="roomL"
+                            type="number"
+                            min={0}
+                            step=".1"
+                            value={room.l}
+                            onChange={(e) => updateRoom(room.id, 'l', Number(e.target.value))}
+                          />
+                        </div>
+                        <div className="field">
+                          <label>Width (meters)</label>
+                          <input
+                            className="roomW"
+                            type="number"
+                            min={0}
+                            step=".1"
+                            value={room.w}
+                            onChange={(e) => updateRoom(room.id, 'w', Number(e.target.value))}
+                          />
+                        </div>
+                        <div className="field">
+                          <label>Number of Rooms</label>
+                          <input
+                            className="roomN"
+                            type="number"
+                            min={0}
+                            value={room.n}
+                            onChange={(e) => updateRoom(room.id, 'n', Number(e.target.value))}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button type="button" className="add" onClick={addRoom}>
+                  ＋ Add Room
+                </button>
+
+                {/* Wall Dimensions */}
+                <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '16px' }}>
+                  Wall Dimensions & Mortar Specification
+                </h3>
+                <div className="grid">
+                  <div className="field">
+                    <label>Total Wall Length (running meters / floor)</label>
+                    <input
+                      id="wallLength"
+                      type="number"
+                      min={0}
+                      step=".5"
+                      value={wallLength}
+                      onChange={(e) => setWallLength(Number(e.target.value))}
+                    />
+                    <div className="unit">External + internal partition walls</div>
+                  </div>
+                  <div className="field">
+                    <label>Wall Height (meters)</label>
+                    <input
+                      id="wallHeight"
+                      type="number"
+                      min={0}
+                      step=".1"
+                      value={wallHeight}
+                      onChange={(e) => setWallHeight(Number(e.target.value))}
+                    />
+                    <div className="unit">Floor-to-ceiling height (e.g. 3.0 m) · Used in Plaster Formula (2 × L × H)</div>
+                  </div>
+                  <div className="field">
+                    <label>Wall Thickness (meters)</label>
+                    <input
+                      id="wallThick"
+                      type="number"
+                      min={0}
+                      step=".01"
+                      value={wallThick}
+                      onChange={(e) => setWallThick(Number(e.target.value))}
+                    />
+                    <div className="unit">e.g. 0.23 m (230 mm / 9") or 0.115 m (4.5")</div>
+                  </div>
+                  <div className="field">
+                    <label>Brickwork Mortar: Cement Part</label>
+                    <input
+                      id="mortarC"
+                      type="number"
+                      min={0.1}
+                      step=".1"
+                      value={mortarC}
+                      onChange={(e) => setMortarC(Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Brickwork Mortar: Sand Part</label>
+                    <input
+                      id="mortarS"
+                      type="number"
+                      min={0.1}
+                      step=".1"
+                      value={mortarS}
+                      onChange={(e) => setMortarS(Number(e.target.value))}
+                    />
+                    <div className="unit">Standard 1:6 ratio</div>
+                  </div>
+                  <div className="field">
+                    <label>Bricks per cubic meter (cu.m) of brickwork</label>
+                    <input
+                      id="brickFactor"
+                      type="number"
+                      min={1}
+                      value={brickFactor}
+                      onChange={(e) => setBrickFactor(Number(e.target.value))}
+                    />
+                    <div className="unit">Standard metric brick: 500 pcs / m³</div>
+                  </div>
+                </div>
+
+                {/* Openings Deduction Notification from Step 6 */}
+                <div className="field full" style={{ marginTop: '16px' }}>
+                  <div className="live-badge" style={{ background: '#f0f9ff', borderColor: '#bae6fd', color: '#0369a1' }}>
+                    <span>🚪 Step 6 Openings Deducted: <strong>{fmt(totalOpeningsArea)} m²</strong> ({totalDoorCount} Doors, {totalWindowCount} Windows, {totalVentCount} Vents)</span>
+                    <span style={{ margin: '0 8px' }}>|</span>
+                    <span>Net Masonry Wall Area: <strong>{fmt(Math.max(0, (Number(wallLength) || 0) * (Number(wallHeight) || 0) * (Number(floors) || 1) - totalOpeningsArea))} m²</strong></span>
+                  </div>
+                </div>
+
+                <div className="actions">
+                  <button type="button" className="btn secondary" onClick={() => go(7)}>
+                    ← Back: Slab
+                  </button>
+                  <button type="button" className="btn primary" onClick={() => go(9)}>
                     Next: Plaster →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 8: 9. Plaster */}
-            {currentStep === 8 && (
-              <section className="page" data-page="8">
-                <h2>9. Plaster</h2>
+            {/* Step 9: 10. Plaster */}
+            {currentStep === 9 && (
+              <section className="page" data-page="9">
+                <h2>10. Plaster</h2>
                 <p className="sub">
                   Accurate internal and external wall plaster area calculation using the IS Civil Engineering formula, deducting all doors, windows, and ventilation openings.
                 </p>
@@ -2619,20 +2737,20 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(7)}>
+                  <button type="button" className="btn secondary" onClick={() => go(8)}>
                     ← Back: Brick Work
                   </button>
-                  <button type="button" className="btn primary" onClick={() => go(9)}>
+                  <button type="button" className="btn primary" onClick={() => go(10)}>
                     Next: Tiles & Finishing →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 9: 10. Tiles & Finishing */}
-            {currentStep === 9 && (
-              <section className="page" data-page="9">
-                <h2>10. Tiles & Finishing</h2>
+            {/* Step 10: 11. Tiles & Finishing */}
+            {currentStep === 10 && (
+              <section className="page" data-page="10">
+                <h2>11. Tiles & Finishing</h2>
                 <p className="sub">
                   Configure floor tiles, wall dado tiles, electrical points, plumbing fixtures, and waterproofing.
                 </p>
@@ -2704,20 +2822,20 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(8)}>
+                  <button type="button" className="btn secondary" onClick={() => go(9)}>
                     ← Back: Plaster
                   </button>
-                  <button type="button" className="btn primary" onClick={() => go(10)}>
+                  <button type="button" className="btn primary" onClick={() => go(11)}>
                     Next: Rates & BOQ →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 10: 11. Rates & BOQ */}
-            {currentStep === 10 && (
-              <section className="page" data-page="10">
-                <h2>11. Rates & BOQ</h2>
+            {/* Step 11: 12. Rates & BOQ */}
+            {currentStep === 11 && (
+              <section className="page" data-page="11">
+                <h2>12. Rates & BOQ</h2>
                 <p className="sub">
                   Market rates in Indian Rupees (₹) for all newly configured items including Tiles, Doors, Windows, Ventilators, and Slab Formwork.
                 </p>
@@ -2793,8 +2911,13 @@ export default function App() {
 
                 {/* 2. Structural Labour & Slab / Slab Beam Formwork */}
                 <h3 style={{ margin: '22px 0 10px', color: '#153d5c', fontSize: '16px' }}>
-                  2. Slab & Slab Beam Formwork & Structural Labour
+                  2. Slab & Slab Beam Formwork & Labour Policy
                 </h3>
+                <div className="field full" style={{ marginBottom: '12px' }}>
+                  <div className="live-badge" style={{ background: '#ecfdf5', borderColor: '#a7f3d0', color: '#065f46' }}>
+                    <span>👷 Labour Charge Policy: Strictly calculated as <strong>35% of Total Material Cost</strong> added to final BOQ.</span>
+                  </div>
+                </div>
                 <div className="grid">
                   <div className="field">
                     <label>Slab & Slab Beam Formwork / Shuttering (₹ / sq.m)</label>
@@ -2808,15 +2931,14 @@ export default function App() {
                     <div className="unit">Centering, staging & de-shuttering per m² of slab & beam</div>
                   </div>
                   <div className="field">
-                    <label>Structural Construction Labour (₹ / sq.m built-up)</label>
+                    <label>Labour Charge Rate Specification</label>
                     <input
-                      id="labourRate"
-                      type="number"
-                      min={0}
-                      value={labourRate}
-                      onChange={(e) => setLabourRate(Number(e.target.value))}
+                      type="text"
+                      disabled
+                      value="Fixed 35% of Total Material Cost"
+                      style={{ background: '#f1f5f9', color: '#065f46', fontWeight: 700 }}
                     />
-                    <div className="unit">Civil masonry & casting labour rate</div>
+                    <div className="unit">Standard CPWD civil workforce norm</div>
                   </div>
                 </div>
 
@@ -2971,7 +3093,7 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(9)}>
+                  <button type="button" className="btn secondary" onClick={() => go(10)}>
                     ← Back: Tiles & Finishing
                   </button>
                   <button type="button" className="btn primary" onClick={handleCalculate}>
@@ -3034,8 +3156,8 @@ export default function App() {
                       <div style={{ fontSize: '18px', fontWeight: 800, color: '#4ade80' }}>{fmt(calcData.steel)} kg</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Total Core Materials Cost</div>
-                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#ffc24b' }}>{money(calcData.totalCoreMaterialsCost)}</div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase' }}>Total Materials Cost (Basis)</div>
+                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#ffc24b' }}>{money(calcData.totalMaterialCost)}</div>
                     </div>
                   </div>
                 </div>
@@ -3054,10 +3176,10 @@ export default function App() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', borderBottom: '1px solid rgba(255, 255, 255, 0.15)', paddingBottom: '10px' }}>
                   <div style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '0.3px', color: '#a7f3d0' }}>
-                    👷 TOTAL LABOUR CHARGES
+                    👷 TOTAL LABOUR CHARGES (35%)
                   </div>
                   <span style={{ fontSize: '11px', background: 'rgba(167, 243, 208, 0.2)', color: '#a7f3d0', padding: '3px 8px', borderRadius: '12px', fontWeight: 600 }}>
-                    Workforce Breakdown
+                    Fixed 35% Norm
                   </span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -3082,7 +3204,7 @@ export default function App() {
                     <div style={{ fontSize: '15px', fontWeight: 700 }}>{money(calcData.labourBreakdown.excavationLabour)}</div>
                   </div>
                   <div style={{ background: 'rgba(255, 255, 255, 0.15)', padding: '8px 10px', borderRadius: '6px', border: '1px solid rgba(167, 243, 208, 0.4)' }}>
-                    <div style={{ fontSize: '11px', color: '#6ee7b7', textTransform: 'uppercase', fontWeight: 700 }}>Total Labour Charge</div>
+                    <div style={{ fontSize: '11px', color: '#6ee7b7', textTransform: 'uppercase', fontWeight: 700 }}>Total Labour (35% of Materials)</div>
                     <div style={{ fontSize: '17px', fontWeight: 800, color: '#34d399' }}>{money(calcData.totalLabourCost)}</div>
                   </div>
                 </div>
@@ -3332,7 +3454,7 @@ export default function App() {
                 className="btn secondary"
                 onClick={() => {
                   setShowResult(false);
-                  go(10);
+                  go(11);
                 }}
               >
                 ← Edit Rates
