@@ -98,8 +98,8 @@ export default function App() {
   const [regError, setRegError] = useState<string>('');
   const [regSuccess, setRegSuccess] = useState<string>('');
 
-  // Stepper state (0 to 8)
-  // 0: 1. Footings & Excavation, 1: 2. Columns, 2: 3. Plinth Beam, 3: 4. Slab Beam, 4: 5. Slab, 5: 6. Brick Work, 6: 7. Plaster, 7: 8. Tiles & Finishing, 8: 9. Rates
+  // Stepper state (0 to 10)
+  // 0: 1. Project, 1: 2. Excavation, 2: 3. Footing, 3: 4. Columns, 4: 5. Plinth Beam, 5: 6. Slab Beam, 6: 7. Slab, 7: 8. Brick Work, 8: 9. Plaster, 9: 10. Tiles & Finishing, 10: 11. Rates & BOQ
   const [currentStep, setCurrentStep] = useState<number>(0);
 
   // Step 1: Project Details (Metric)
@@ -1187,71 +1187,78 @@ export default function App() {
               className={`step ${currentStep === 0 ? 'active' : currentStep > 0 ? 'done' : ''}`}
               onClick={() => go(0)}
             >
-              1. Footings & Excavation
+              1. Project
             </div>
             <div
               className={`step ${currentStep === 1 ? 'active' : currentStep > 1 ? 'done' : ''}`}
               onClick={() => go(1)}
             >
-              2. Columns
+              2. Excavation
             </div>
             <div
               className={`step ${currentStep === 2 ? 'active' : currentStep > 2 ? 'done' : ''}`}
               onClick={() => go(2)}
             >
-              3. Plinth Beam
+              3. Footing
             </div>
             <div
               className={`step ${currentStep === 3 ? 'active' : currentStep > 3 ? 'done' : ''}`}
               onClick={() => go(3)}
             >
-              4. Slab Beam
+              4. Columns
             </div>
             <div
               className={`step ${currentStep === 4 ? 'active' : currentStep > 4 ? 'done' : ''}`}
               onClick={() => go(4)}
             >
-              5. Slab
+              5. Plinth Beam
             </div>
             <div
               className={`step ${currentStep === 5 ? 'active' : currentStep > 5 ? 'done' : ''}`}
               onClick={() => go(5)}
             >
-              6. Brick Work
+              6. Slab Beam
             </div>
             <div
               className={`step ${currentStep === 6 ? 'active' : currentStep > 6 ? 'done' : ''}`}
               onClick={() => go(6)}
             >
-              7. Plaster
+              7. Slab
             </div>
             <div
               className={`step ${currentStep === 7 ? 'active' : currentStep > 7 ? 'done' : ''}`}
               onClick={() => go(7)}
             >
-              8. Tiles & Finishing
+              8. Brick Work
             </div>
             <div
-              className={`step ${currentStep === 8 ? 'active' : ''}`}
+              className={`step ${currentStep === 8 ? 'active' : currentStep > 8 ? 'done' : ''}`}
               onClick={() => go(8)}
             >
-              9. Rates & BOQ
+              9. Plaster
+            </div>
+            <div
+              className={`step ${currentStep === 9 ? 'active' : currentStep > 9 ? 'done' : ''}`}
+              onClick={() => go(9)}
+            >
+              10. Tiles & Finishing
+            </div>
+            <div
+              className={`step ${currentStep === 10 ? 'active' : ''}`}
+              onClick={() => go(10)}
+            >
+              11. Rates & BOQ
             </div>
           </div>
 
           <form id="form" onSubmit={(e) => e.preventDefault()}>
-            {/* Step 0: 1. Footings & Excavation (Project Overview + Excavation + Footing Concrete) */}
+            {/* Step 0: 1. Project */}
             {currentStep === 0 && (
               <section className="page" data-page="0">
-                <h2>1. Footings & Excavation</h2>
+                <h2>1. Project Details</h2>
                 <p className="sub">
-                  Enter project overview details, foundation earthwork excavation pits, and reinforced concrete footings in metric units.
+                  Enter general building, plot, and floor area details in metric units.
                 </p>
-
-                {/* 1. Project Details */}
-                <h3 style={{ margin: '14px 0 10px', color: '#153d5c', fontSize: '16px' }}>
-                  Project Overview
-                </h3>
                 <div className="grid">
                   <div className="field">
                     <label>Project / Owner Name</label>
@@ -1322,11 +1329,23 @@ export default function App() {
                     <div className="unit">e.g. 95 sq.m (~1020 sq.ft)</div>
                   </div>
                 </div>
+                <div className="actions">
+                  <span></span>
+                  <button type="button" className="btn primary" onClick={() => go(1)}>
+                    Next: Excavation →
+                  </button>
+                </div>
+              </section>
+            )}
 
-                {/* 2. Earthwork & Excavation */}
-                <h3 style={{ margin: '24px 0 10px', color: '#153d5c', fontSize: '16px' }}>
-                  Earthwork & Excavation Pits
-                </h3>
+            {/* Step 1: 2. Excavation */}
+            {currentStep === 1 && (
+              <section className="page" data-page="1">
+                <h2>2. Excavation</h2>
+                <p className="sub">
+                  Define excavation pit dimensions and working space margins in meters. Once filled, proceed to Footing.
+                </p>
+
                 <div className="field full">
                   <div className="live-badge">
                     <span>🚜 Total Excavation Volume:</span>
@@ -1482,10 +1501,25 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 3. Footing Concrete */}
-                <h3 style={{ margin: '24px 0 10px', color: '#153d5c', fontSize: '16px' }}>
-                  Reinforced Concrete Footing Sizing
-                </h3>
+                <div className="actions">
+                  <button type="button" className="btn secondary" onClick={() => go(0)}>
+                    ← Back: Project
+                  </button>
+                  <button type="button" className="btn primary" onClick={() => go(2)}>
+                    Next: Footing →
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {/* Step 2: 3. Footing */}
+            {currentStep === 2 && (
+              <section className="page" data-page="2">
+                <h2>3. Footing</h2>
+                <p className="sub">
+                  Excavation filled! Now enter reinforced concrete footing dimensions and quantities in meters.
+                </p>
+
                 <div className="field full">
                   <div className="live-badge">
                     <span>🏗️ Total Footing Concrete:</span>
@@ -1586,20 +1620,22 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <span></span>
-                  <button type="button" className="btn primary" onClick={() => go(1)}>
+                  <button type="button" className="btn secondary" onClick={() => go(1)}>
+                    ← Back: Excavation
+                  </button>
+                  <button type="button" className="btn primary" onClick={() => go(3)}>
                     Next: Columns →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 1: 2. Columns */}
-            {currentStep === 1 && (
-              <section className="page" data-page="1">
-                <h2>2. Columns</h2>
+            {/* Step 3: 4. Columns */}
+            {currentStep === 3 && (
+              <section className="page" data-page="3">
+                <h2>4. Columns</h2>
                 <p className="sub">
-                  Footings & Excavation complete! Now configure column sizes (width, depth, height) and quantities in meters.
+                  Footings complete! Now configure column sizes (width, depth, height) and quantities in meters.
                 </p>
 
                 <div className="field full">
@@ -1702,20 +1738,20 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(0)}>
-                    ← Back: Footings & Excavation
+                  <button type="button" className="btn secondary" onClick={() => go(2)}>
+                    ← Back: Footing
                   </button>
-                  <button type="button" className="btn primary" onClick={() => go(2)}>
+                  <button type="button" className="btn primary" onClick={() => go(4)}>
                     Next: Plinth Beam →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 2: 3. Plinth Beam */}
-            {currentStep === 2 && (
-              <section className="page" data-page="2">
-                <h2>3. Plinth Beam</h2>
+            {/* Step 4: 5. Plinth Beam */}
+            {currentStep === 4 && (
+              <section className="page" data-page="4">
+                <h2>5. Plinth Beam</h2>
                 <p className="sub">
                   Configure dedicated Plinth Beam (ground / foundation level tie-beams) running length and cross-section dimensions.
                 </p>
@@ -1779,20 +1815,20 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(1)}>
+                  <button type="button" className="btn secondary" onClick={() => go(3)}>
                     ← Back: Columns
                   </button>
-                  <button type="button" className="btn primary" onClick={() => go(3)}>
+                  <button type="button" className="btn primary" onClick={() => go(5)}>
                     Next: Slab Beam →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 3: 4. Slab Beam */}
-            {currentStep === 3 && (
-              <section className="page" data-page="3">
-                <h2>4. Slab Beam</h2>
+            {/* Step 5: 6. Slab Beam */}
+            {currentStep === 5 && (
+              <section className="page" data-page="5">
+                <h2>6. Slab Beam</h2>
                 <p className="sub">
                   Configure dedicated Slab Beam (floor and roof level beams) running length, cross-section dimensions, and concrete mix ratio.
                 </p>
@@ -1899,20 +1935,20 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(2)}>
+                  <button type="button" className="btn secondary" onClick={() => go(4)}>
                     ← Back: Plinth Beam
                   </button>
-                  <button type="button" className="btn primary" onClick={() => go(4)}>
+                  <button type="button" className="btn primary" onClick={() => go(6)}>
                     Next: Slab →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 4: 5. Slab */}
-            {currentStep === 4 && (
-              <section className="page" data-page="4">
-                <h2>5. Slab</h2>
+            {/* Step 6: 7. Slab */}
+            {currentStep === 6 && (
+              <section className="page" data-page="6">
+                <h2>7. Slab</h2>
                 <p className="sub">
                   Configure roof & floor slab panels, dimensions (Length, Width, Thickness), and steel reinforcement consumption.
                 </p>
@@ -2068,20 +2104,20 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(3)}>
+                  <button type="button" className="btn secondary" onClick={() => go(5)}>
                     ← Back: Slab Beam
                   </button>
-                  <button type="button" className="btn primary" onClick={() => go(5)}>
+                  <button type="button" className="btn primary" onClick={() => go(7)}>
                     Next: Brick Work →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 5: 6. Brick Work */}
-            {currentStep === 5 && (
-              <section className="page" data-page="5">
-                <h2>6. Brick Work & Openings</h2>
+            {/* Step 7: 8. Brick Work */}
+            {currentStep === 7 && (
+              <section className="page" data-page="7">
+                <h2>8. Brick Work & Openings</h2>
                 <p className="sub">
                   Configure room measurements, masonry wall dimensions, and dedicated openings (Doors, Windows, and Ventilation).
                 </p>
@@ -2479,20 +2515,20 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(4)}>
+                  <button type="button" className="btn secondary" onClick={() => go(6)}>
                     ← Back: Slab
                   </button>
-                  <button type="button" className="btn primary" onClick={() => go(6)}>
+                  <button type="button" className="btn primary" onClick={() => go(8)}>
                     Next: Plaster →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 6: 7. Plaster */}
-            {currentStep === 6 && (
-              <section className="page" data-page="6">
-                <h2>7. Plaster</h2>
+            {/* Step 8: 9. Plaster */}
+            {currentStep === 8 && (
+              <section className="page" data-page="8">
+                <h2>9. Plaster</h2>
                 <p className="sub">
                   Accurate internal and external wall plaster area calculation using the IS Civil Engineering formula, deducting all doors, windows, and ventilation openings.
                 </p>
@@ -2583,20 +2619,20 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(5)}>
+                  <button type="button" className="btn secondary" onClick={() => go(7)}>
                     ← Back: Brick Work
                   </button>
-                  <button type="button" className="btn primary" onClick={() => go(7)}>
+                  <button type="button" className="btn primary" onClick={() => go(9)}>
                     Next: Tiles & Finishing →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 7: 8. Tiles & Finishing */}
-            {currentStep === 7 && (
-              <section className="page" data-page="7">
-                <h2>8. Tiles & Finishing</h2>
+            {/* Step 9: 10. Tiles & Finishing */}
+            {currentStep === 9 && (
+              <section className="page" data-page="9">
+                <h2>10. Tiles & Finishing</h2>
                 <p className="sub">
                   Configure floor tiles, wall dado tiles, electrical points, plumbing fixtures, and waterproofing.
                 </p>
@@ -2668,20 +2704,20 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(6)}>
+                  <button type="button" className="btn secondary" onClick={() => go(8)}>
                     ← Back: Plaster
                   </button>
-                  <button type="button" className="btn primary" onClick={() => go(8)}>
+                  <button type="button" className="btn primary" onClick={() => go(10)}>
                     Next: Rates & BOQ →
                   </button>
                 </div>
               </section>
             )}
 
-            {/* Step 8: 9. Rates & BOQ */}
-            {currentStep === 8 && (
-              <section className="page" data-page="8">
-                <h2>9. Rates & BOQ</h2>
+            {/* Step 10: 11. Rates & BOQ */}
+            {currentStep === 10 && (
+              <section className="page" data-page="10">
+                <h2>11. Rates & BOQ</h2>
                 <p className="sub">
                   Market rates in Indian Rupees (₹) for all newly configured items including Tiles, Doors, Windows, Ventilators, and Slab Formwork.
                 </p>
@@ -2935,7 +2971,7 @@ export default function App() {
                 </div>
 
                 <div className="actions">
-                  <button type="button" className="btn secondary" onClick={() => go(7)}>
+                  <button type="button" className="btn secondary" onClick={() => go(9)}>
                     ← Back: Tiles & Finishing
                   </button>
                   <button type="button" className="btn primary" onClick={handleCalculate}>
@@ -3296,7 +3332,7 @@ export default function App() {
                 className="btn secondary"
                 onClick={() => {
                   setShowResult(false);
-                  go(8);
+                  go(10);
                 }}
               >
                 ← Edit Rates
